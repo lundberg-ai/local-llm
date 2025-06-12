@@ -67,8 +67,6 @@ export default function AipifyLocalPage() {
       }
     } catch (e) {
       console.warn("Could not access localStorage for theme preference.");
-      // Fallback for environments where localStorage is not available or matchMedia fails
-      // Consider a default or let CSS handle it if JS fails entirely
     }
     setTheme(initialUserTheme);
     if (initialUserTheme === 'dark') {
@@ -80,19 +78,21 @@ export default function AipifyLocalPage() {
 
   // Theme persistence
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      try {
-        localStorage.setItem('aipify-local-theme', 'dark');
-      } catch (e) {
-        console.warn("Could not save theme preference to localStorage.");
-      }
-    } else {
-      document.documentElement.classList.remove('dark');
-      try {
-        localStorage.setItem('aipify-local-theme', 'light');
-      } catch (e) {
-        console.warn("Could not save theme preference to localStorage.");
+    if (typeof window !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        try {
+          localStorage.setItem('aipify-local-theme', 'dark');
+        } catch (e) {
+          console.warn("Could not save theme preference to localStorage.");
+        }
+      } else {
+        document.documentElement.classList.remove('dark');
+        try {
+          localStorage.setItem('aipify-local-theme', 'light');
+        } catch (e) {
+          console.warn("Could not save theme preference to localStorage.");
+        }
       }
     }
   }, [theme]);
@@ -130,7 +130,10 @@ export default function AipifyLocalPage() {
         localStorage.setItem('aipify-local-api-key', apiKey);
       } else {
         if (mode === 'online') {
-          setMode('offline'); // Switch to offline if API key becomes null while in online mode
+          // If online mode is active but API key is removed/null, switch to offline
+          // This case might be less common if API key removal UI isn't present
+          // but good for robustness.
+          setMode('offline');
         }
         localStorage.removeItem('aipify-local-api-key');
       }
@@ -154,6 +157,8 @@ export default function AipifyLocalPage() {
           })),
         }));
         setChats(parsedChats);
+        // Set active chat only if parsedChats is not empty and activeChatId is not already set
+        // (which it shouldn't be on initial mount for this effect)
         if (parsedChats.length > 0 && !activeChatId) {
           setActiveChatId(parsedChats[0].id);
         }
@@ -161,16 +166,18 @@ export default function AipifyLocalPage() {
     } catch (error) {
       console.error("Failed to parse chats from local storage:", error);
       try {
-        localStorage.removeItem("aipify-local-chats");
+        localStorage.removeItem("aipify-local-chats"); // Attempt to clear corrupted data
       } catch (e) {
         console.warn("Could not remove corrupted chats from localStorage.");
       }
     }
-  }, [activeChatId]); // Added activeChatId dependency to ensure it is set if chats load
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // CRITICAL: Changed dependency array from [activeChatId] to []
 
   // Save chats to local storage whenever they change
   useEffect(() => {
     try {
+      // Avoid writing an empty array if localStorage didn't have chats initially
       if (chats.length > 0 || localStorage.getItem("aipify-local-chats")) {
         localStorage.setItem("aipify-local-chats", JSON.stringify(chats));
       }
@@ -185,14 +192,13 @@ export default function AipifyLocalPage() {
       title: "New Chat",
       messages: [],
       createdAt: new Date(),
-      modelId: selectedModelId,
+      modelId: selectedModelId, // Use the currently selected model for new chats
     };
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
-  }, [selectedModelId]);
+  }, [selectedModelId]); // Dependency on selectedModelId ensures new chats get the current model
 
   useEffect(() => {
-    // Check if localStorage is available before trying to use it
     let hasStoredChats = false;
     try {
       hasStoredChats = !!localStorage.getItem("aipify-local-chats");
@@ -200,27 +206,40 @@ export default function AipifyLocalPage() {
       // localStorage not available or accessible
     }
 
+    // Only create a new chat if there are no chats in state AND no chats in storage.
+    // This prevents creating a new chat if chats are about to be loaded from storage.
     if (chats.length === 0 && !hasStoredChats) {
       createNewChat();
     }
-  }, [chats.length, createNewChat]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chats.length, createNewChat]); // createNewChat is a dependency
 
 
   const handleSelectChat = (chatId: string) => {
     setActiveChatId(chatId);
+    const selectedChat = chats.find(c => c.id === chatId);
+    if (selectedChat && selectedChat.modelId) {
+      setSelectedModelId(selectedChat.modelId);
+    }
   };
 
   const handleDeleteChat = (chatId: string) => {
-    setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
-    if (activeChatId === chatId) {
-      const remainingChats = chats.filter(c => c.id !== chatId);
-      if (remainingChats.length > 0) {
-        setActiveChatId(remainingChats[0].id);
-      } else {
-        setActiveChatId(null); // No chats left
-        createNewChat(); // Create a new one if all are deleted
+    setChats((prevChats) => {
+      const updatedChats = prevChats.filter((chat) => chat.id !== chatId);
+      if (activeChatId === chatId) {
+        if (updatedChats.length > 0) {
+          setActiveChatId(updatedChats[0].id);
+          // Also update selectedModelId to the model of the new active chat
+          if (updatedChats[0].modelId) {
+            setSelectedModelId(updatedChats[0].modelId);
+          }
+        } else {
+          setActiveChatId(null); // No chats left
+          // createNewChat(); // This will be handled by the useEffect for initial chat creation
+        }
       }
-    }
+      return updatedChats;
+    });
   };
 
   const handleSelectModel = (modelId: string) => {
@@ -266,6 +285,7 @@ export default function AipifyLocalPage() {
       timestamp: new Date(),
     };
 
+    // Update chat with user message first
     setChats((prevChats) =>
       prevChats.map((chat) =>
         chat.id === chatId
@@ -275,8 +295,10 @@ export default function AipifyLocalPage() {
     );
     setIsLoadingResponse(true);
 
+    // Simulate LLM call
     const llmName = mode === 'online' ? "Gemini (Online)" : (models.find(m => m.id === selectedModelId)?.name || 'Local LLM');
     
+    // Artificial delay to simulate network/processing
     await new Promise(resolve => setTimeout(resolve, 1500)); 
 
     const assistantMessage: Message = {
@@ -289,12 +311,15 @@ export default function AipifyLocalPage() {
     let needsTitleGeneration = false;
     let conversationHistoryForTitle = "";
 
+    // Update chat with assistant message
+    // This is a pure function for setChats
     setChats((prevChats) =>
       prevChats.map((chat) => {
         if (chat.id === chatId) {
           const updatedMessages = [...chat.messages, assistantMessage];
+          // Check if title generation is needed
           if (updatedMessages.length === 2 && chat.title === "New Chat") {
-            needsTitleGeneration = true;
+            needsTitleGeneration = true; // Flag to generate title *after* this state update
             conversationHistoryForTitle = updatedMessages
               .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
               .join("\n");
@@ -305,8 +330,9 @@ export default function AipifyLocalPage() {
       })
     );
     
-    setIsLoadingResponse(false);
+    setIsLoadingResponse(false); // Set loading to false after assistant message is added
 
+    // Perform title generation *after* the state update for messages
     if (needsTitleGeneration) {
       await generateTitle(chatId, conversationHistoryForTitle);
     }
@@ -319,6 +345,8 @@ export default function AipifyLocalPage() {
       } else {
         setTempApiKeyInput(''); 
         setShowApiKeyDialog(true);
+        // Switch won't visually change yet if API key is needed;
+        // it reflects the 'mode' state which changes only on successful API key submission.
       }
     } else { 
       setMode('offline');
@@ -328,7 +356,7 @@ export default function AipifyLocalPage() {
   const handleApiKeyDialogSubmit = () => {
     if (tempApiKeyInput.trim()) {
       setApiKey(tempApiKeyInput.trim());
-      setMode('online');
+      setMode('online'); // Now switch to online mode
       setShowApiKeyDialog(false);
     } else {
       toast({
@@ -342,6 +370,9 @@ export default function AipifyLocalPage() {
   const handleApiKeyDialogClose = () => {
     setShowApiKeyDialog(false);
     setTempApiKeyInput(''); 
+    // If user cancels, and mode isn't already 'online' (e.g. they were trying to switch to it)
+    // ensure the mode state reflects this cancellation if the switch depended on the dialog.
+    // The switch state is bound to 'mode', so if 'mode' didn't change to 'online', it stays 'offline'.
   };
 
   const activeChat = chats.find((chat) => chat.id === activeChatId);
@@ -419,7 +450,7 @@ export default function AipifyLocalPage() {
       </SidebarInset>
 
       <Dialog open={showApiKeyDialog} onOpenChange={(openState) => {
-          if (!openState) {
+          if (!openState) { // If dialog is closed by means other than submit/cancel buttons
             handleApiKeyDialogClose();
           }
         }}>
