@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -20,7 +21,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, Settings2 } from "lucide-react";
+import { PanelLeft, Settings2, Sun, Moon } from "lucide-react";
 
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
@@ -31,8 +32,67 @@ export default function AipifyLocalPage() {
   );
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Determine initial theme (localStorage > system preference > default 'light')
+    let initialUserTheme: 'light' | 'dark' = 'light';
+    try {
+      const storedTheme = localStorage.getItem('aipify-local-theme') as 'light' | 'dark' | null;
+      if (storedTheme) {
+        initialUserTheme = storedTheme;
+      } else {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (systemPrefersDark) {
+          initialUserTheme = 'dark';
+        }
+      }
+    } catch (e) {
+      console.warn("Could not access localStorage for theme preference.");
+      // Fallback to system preference if localStorage fails
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (systemPrefersDark) {
+        initialUserTheme = 'dark';
+      }
+    }
+    
+    setTheme(initialUserTheme); // Set state
+
+    // Apply class to HTML element based on resolved initial theme
+    // This is done here initially and also in the second useEffect on theme change
+    if (initialUserTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []); // Empty dependency array: run once on mount
+
+  useEffect(() => {
+    // This effect runs when `theme` state changes (e.g., from the toggle button)
+    // or on initial load after the first effect sets the theme.
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      try {
+        localStorage.setItem('aipify-local-theme', 'dark');
+      } catch (e) {
+        console.warn("Could not save theme preference to localStorage.");
+      }
+    } else {
+      document.documentElement.classList.remove('dark');
+      try {
+        localStorage.setItem('aipify-local-theme', 'light');
+      } catch (e) {
+        console.warn("Could not save theme preference to localStorage.");
+      }
+    }
+  }, [theme]); // Dependency: run when `theme` changes
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
   // Load chats from local storage on mount
   useEffect(() => {
     const storedChats = localStorage.getItem("aipify-local-chats");
@@ -75,12 +135,12 @@ export default function AipifyLocalPage() {
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
   }, [selectedModelId]);
-  // Create initial chat if none exist
+
   useEffect(() => {
-    if (chats.length === 0 && !localStorage.getItem("aipify-local-chats")) { // only if truly empty start
+    if (chats.length === 0 && !localStorage.getItem("aipify-local-chats")) {
       createNewChat();
     }
-  }, [chats.length]); // Remove createNewChat from dependencies to avoid infinite loop
+  }, [chats.length, createNewChat]);
 
 
   const handleSelectChat = (chatId: string) => {
@@ -91,13 +151,12 @@ export default function AipifyLocalPage() {
     setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
     if (activeChatId === chatId) {
       setActiveChatId(chats.length > 1 ? chats.find(c => c.id !== chatId)?.id || null : null);
-      if (chats.length <= 1) createNewChat(); // if last chat is deleted, create a new one
+      if (chats.length <= 1) createNewChat(); 
     }
   };
 
   const handleSelectModel = (modelId: string) => {
     setSelectedModelId(modelId);
-    // Optionally update current active chat's model
     if (activeChatId) {
       setChats((prevChats) =>
         prevChats.map((chat) =>
@@ -148,7 +207,6 @@ export default function AipifyLocalPage() {
     );
     setIsLoadingResponse(true);
 
-    // Simulate API call and AI response
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const assistantMessage: Message = {
@@ -162,8 +220,7 @@ export default function AipifyLocalPage() {
       prevChats.map((chat) => {
         if (chat.id === chatId) {
           const updatedMessages = [...chat.messages, assistantMessage];
-          // Check for title generation
-          if (updatedMessages.length === 2 && chat.title === "New Chat") { // 1 user, 1 assistant
+          if (updatedMessages.length === 2 && chat.title === "New Chat") {
             const history = updatedMessages
               .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
               .join("\n");
@@ -181,14 +238,15 @@ export default function AipifyLocalPage() {
 
   return (
     <SidebarProvider defaultOpen>
-      <Sidebar collapsible="icon" side="left" className="border-r-sidebar-border">        <SidebarHeader className="h-16 flex items-center p-4 border-b border-sidebar-border min-h-[64px] max-h-[64px]">
-        <div className="flex items-center gap-2">
-          <AipifyLogo className="text-accent h-8 w-8" />
-          <h1 className="font-headline text-2xl font-semibold text-sidebar-foreground">
-            Aipify Local
-          </h1>
-        </div>
-      </SidebarHeader>
+      <Sidebar collapsible="icon" side="left" className="border-r-sidebar-border">
+        <SidebarHeader className="h-16 flex items-center p-4 border-b border-sidebar-border min-h-[64px] max-h-[64px]">
+          <div className="flex items-center gap-2">
+            <AipifyLogo className="text-accent h-8 w-8" />
+            <h1 className="font-headline text-2xl font-semibold text-sidebar-foreground">
+              Aipify Local
+            </h1>
+          </div>
+        </SidebarHeader>
         <LLMSelector
           models={models}
           selectedModelId={selectedModelId}
@@ -203,7 +261,8 @@ export default function AipifyLocalPage() {
             onCreateChat={createNewChat}
             onDeleteChat={handleDeleteChat}
             disabled={isLoadingResponse || isGeneratingTitle}
-          />        </SidebarContent>
+          />
+        </SidebarContent>
         <SidebarFooter className="p-2 border-t border-sidebar-border h-[74px] min-h-[74px] max-h-[74px] flex items-center">
           <Button variant="ghost" className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/20">
             <Settings2 className="h-4 w-4 text-accent" />
@@ -213,15 +272,22 @@ export default function AipifyLocalPage() {
       </Sidebar>
 
       <SidebarInset>
-        <div className="flex h-16 items-center justify-between p-4 border-b border-border sticky top-0 bg-background z-10 md:justify-end min-h-[64px] max-h-[64px] header-64">
-          <SidebarTrigger className="md:hidden">
-            <PanelLeft />
-          </SidebarTrigger>
-          <h2 className="text-lg font-semibold truncate md:hidden font-headline">
-            {activeChat?.title || "Chat"}
-          </h2>
-          {/* Placeholder for potential top-right actions in header */}
-          <div className="md:hidden w-8"></div> {/* Spacer for mobile title centering */}        </div>
+        <div className="flex h-16 items-center p-4 border-b border-border sticky top-0 bg-background z-10 min-h-[64px] max-h-[64px] header-64">
+          <div className="flex items-center gap-2 md:hidden">
+            <SidebarTrigger>
+              <PanelLeft />
+            </SidebarTrigger>
+            <h2 className="text-lg font-semibold truncate font-headline">
+              {activeChat?.title || "Chat"}
+            </h2>
+          </div>
+          <div className="flex-grow"></div>
+          <div className="flex items-center">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </Button>
+          </div>
+        </div>
         <ChatWindow
           chatSession={activeChat || null}
           onSendMessage={handleSendMessage}
@@ -231,3 +297,5 @@ export default function AipifyLocalPage() {
     </SidebarProvider>
   );
 }
+
+    
