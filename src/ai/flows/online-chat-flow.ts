@@ -1,28 +1,19 @@
 
-'use server';
 /**
  * @fileOverview A flow to handle online chat with Gemini using a user-provided API key.
- *
- * - onlineChatFlow - Handles sending a message to Gemini and getting a response.
- * - OnlineChatInputSchema - The Zod schema for the input to the onlineChatFlow function.
- * - OnlineChatInput - The input type for the onlineChatFlow function.
- * - OnlineChatOutputSchema - The Zod schema for the output of the onlineChatFlow function.
- * - OnlineChatOutput - The return type for the onlineChatFlow function.
- * - HistoryItemSchema - The Zod schema for individual history items.
- * - HistoryItem - The type for individual history items.
  */
 
-import { genkit, MessageData, Role } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
-export const HistoryItemSchema = z.object({
+const HistoryItemSchema = z.object({
   role: z.enum(['user', 'model']), // Gemini uses 'user' and 'model'
   parts: z.array(z.object({ text: z.string() })),
 });
 export type HistoryItem = z.infer<typeof HistoryItemSchema>;
 
-export const OnlineChatInputSchema = z.object({
+const OnlineChatInputSchema = z.object({
   userMessage: z.string().describe("The user's current message."),
   history: z.array(HistoryItemSchema).describe('The conversation history, where roles are "user" or "model".'),
   apiKey: z.string().describe('The Gemini API key.'),
@@ -30,7 +21,7 @@ export const OnlineChatInputSchema = z.object({
 });
 export type OnlineChatInput = z.infer<typeof OnlineChatInputSchema>;
 
-export const OnlineChatOutputSchema = z.object({
+const OnlineChatOutputSchema = z.object({
   assistantResponse: z.string().describe('The response from the Gemini model.'),
 });
 export type OnlineChatOutput = z.infer<typeof OnlineChatOutputSchema>;

@@ -9,18 +9,23 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessageDisplay } from "./ChatMessageDisplay";
 import { Loader2, Send, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { summarizeConversation as summarizeConversationFlow } from "@/ai/flows/summarize-conversation";
 
 interface ChatWindowProps {
   chatSession: ChatSession | null;
   onSendMessage: (chatId: string, content: string) => Promise<void>;
   isLoadingResponse: boolean;
+  mode: 'offline' | 'online';
+  selectedModelId: string | undefined;
+  apiKey: string | null;
 }
 
 export function ChatWindow({
   chatSession,
   onSendMessage,
   isLoadingResponse,
+  mode,
+  selectedModelId,
+  apiKey,
 }: ChatWindowProps) {
   const [inputValue, setInputValue] = useState("");
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -55,9 +60,25 @@ export function ChatWindow({
     try {
       const conversationText = chatSession.messages
         .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
-        .join("\n");
+        .join("\n"); const response = await fetch('/api/summarize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            conversationText,
+            mode,
+            apiKey: apiKey || undefined,
+            modelId: selectedModelId,
+          }),
+        });
 
-      const result = await summarizeConversationFlow({ conversationText });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to summarize conversation');
+      }
+
+      const result = await response.json();
 
       if (result.summary && chatSession) {
         await onSendMessage(chatSession.id, `Summary of the conversation:\n${result.summary}`);

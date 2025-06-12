@@ -9,8 +9,6 @@ import { ChatList } from "@/components/ChatList";
 import { ChatWindow } from "@/components/ChatWindow";
 import { LLMSelector } from "@/components/LLMSelector";
 import AipifyLogo from "@/components/icons/AipifyLogo";
-import { generateConversationTitle as generateTitleFlow } from "@/ai/flows/generate-conversation-title";
-import { onlineChatFlow, OnlineChatInput, HistoryItem } from "@/ai/flows/online-chat-flow";
 import { useToast } from "@/hooks/use-toast";
 import {
   SidebarProvider,
@@ -246,7 +244,24 @@ export default function AipifyLocalPage() {
     if (isGeneratingTitle) return;
     setIsGeneratingTitle(true);
     try {
-      const result = await generateTitleFlow({ conversationHistory });
+      const response = await fetch('/api/generate-title', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationHistory,
+          apiKey: mode === 'online' ? apiKey : undefined,
+          modelId: mode === 'online' ? selectedModelId : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate title');
+      }
+
+      const result = await response.json();
       if (result.title) {
         setChats((prevChats) =>
           prevChats.map((chat) =>
@@ -286,29 +301,34 @@ export default function AipifyLocalPage() {
 
     setIsLoadingResponse(true);
     let assistantContent: string;
-    const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM');
-
-    try {
+    const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM'); try {
       if (mode === 'online' && apiKey) {
-        const currentChat = updatedMessagesWithUser.find(chat => chat.id === chatId);
-        const conversationHistory: HistoryItem[] = (currentChat?.messages || [])
-          .filter(msg => msg.id !== userMessage.id)
-          .map(msg => ({
-            role: msg.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: msg.content }],
-          }));        // Convert model ID to Genkit format
-        const genkitModelId = selectedModelId?.startsWith('googleai/')
-          ? selectedModelId
-          : `googleai/${selectedModelId}`;
+        // Get conversation history for context
+        const currentChat = chats.find(chat => chat.id === chatId);
+        const conversationHistory = currentChat?.messages || [];
 
-        const flowInput: OnlineChatInput = {
-          userMessage: content,
-          history: conversationHistory,
-          apiKey: apiKey,
-          modelId: genkitModelId,
-        };
-        const result = await onlineChatFlow(flowInput);
-        assistantContent = result.assistantResponse;
+        // Make API call to our chat endpoint
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: content,
+            conversationHistory: conversationHistory,
+            apiKey: apiKey,
+            modelId: selectedModelId,
+            modelName: llmName,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to get response from API');
+        }
+
+        const data = await response.json();
+        assistantContent = data.response;
 
       } else {
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -511,11 +531,13 @@ export default function AipifyLocalPage() {
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
           </div>
-        </div>
-        <ChatWindow
+        </div>        <ChatWindow
           chatSession={activeChat || null}
           onSendMessage={handleSendMessage}
           isLoadingResponse={isLoadingResponse}
+          mode={mode}
+          selectedModelId={selectedModelId}
+          apiKey={apiKey}
         />
       </SidebarInset>
 
