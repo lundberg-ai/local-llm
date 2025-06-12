@@ -54,9 +54,8 @@ const generateChatResponseFlow = ai.defineFlow(
 		if (conversationHistory) {
 			systemPrompt += `\n\nPrevious conversation context:\n${conversationHistory}`;
 		}
-
 		const response = await ai.generate({
-			model: 'googleai/gemini-2.0-flash',
+			model: 'googleai/gemini-2.0-flash-exp',
 			system: systemPrompt,
 			prompt: message,
 		});

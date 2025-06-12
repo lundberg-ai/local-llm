@@ -1,10 +1,9 @@
-
 "use client";
 
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import type { ChatSession, Message, LLMModel } from "@/types";
-import { AVAILABLE_MODELS } from "@/config/models";
+import { AVAILABLE_MODELS, LOCAL_MODELS, GEMINI_MODELS } from "@/config/models";
 import { ChatList } from "@/components/ChatList";
 import { ChatWindow } from "@/components/ChatWindow";
 import { LLMSelector } from "@/components/LLMSelector";
@@ -36,16 +35,14 @@ import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound } from "lucide
 
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [models] = useState<LLMModel[]>(AVAILABLE_MODELS);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null); const [models, setModels] = useState<LLMModel[]>(LOCAL_MODELS);
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    AVAILABLE_MODELS[0]?.id
+    LOCAL_MODELS[0]?.id // Default to first local model
   );
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  const [mode, setMode] = useState<'offline' | 'online'>('offline');
+  const [mode, setMode] = useState<'offline' | 'online'>('offline'); // Default to offline mode
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [tempApiKeyInput, setTempApiKeyInput] = useState('');
@@ -288,10 +285,8 @@ export default function AipifyLocalPage() {
           : chat
       )
     );
-    setIsLoadingResponse(true);
-
-    let assistantContent: string;
-    const llmName = mode === 'online' ? "Gemini" : (models.find(m => m.id === selectedModelId)?.name || 'Local LLM');
+    setIsLoadingResponse(true); let assistantContent: string;
+    const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM');
 
     try {
       if (mode === 'online' && apiKey) {
@@ -304,11 +299,11 @@ export default function AipifyLocalPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          }, body: JSON.stringify({
             message: content,
             conversationHistory: conversationHistory,
             apiKey: apiKey,
+            modelId: selectedModelId,
             modelName: llmName,
           }),
         });
@@ -411,6 +406,23 @@ export default function AipifyLocalPage() {
     // The switch state is bound to 'mode', so if 'mode' didn't change to 'online', it stays 'offline'.
   };
 
+  // Update models and selected model when mode changes
+  useEffect(() => {
+    if (mode === 'online') {
+      setModels(GEMINI_MODELS);
+      // Set to latest Gemini model if not already a Gemini model
+      if (!GEMINI_MODELS.find(m => m.id === selectedModelId)) {
+        setSelectedModelId(GEMINI_MODELS[0]?.id);
+      }
+    } else {
+      setModels(LOCAL_MODELS);
+      // Set to first local model if not already a local model
+      if (!LOCAL_MODELS.find(m => m.id === selectedModelId)) {
+        setSelectedModelId(LOCAL_MODELS[0]?.id);
+      }
+    }
+  }, [mode, selectedModelId]);
+
   const activeChat = chats.find((chat) => chat.id === activeChatId);
 
   return (
@@ -423,12 +435,11 @@ export default function AipifyLocalPage() {
               Aipify Local
             </h1>
           </div>
-        </SidebarHeader>
-        <LLMSelector
+        </SidebarHeader>        <LLMSelector
           models={models}
           selectedModelId={selectedModelId}
           onSelectModel={handleSelectModel}
-          disabled={isLoadingResponse || isGeneratingTitle || mode === 'online'}
+          disabled={isLoadingResponse || isGeneratingTitle}
         />
         <SidebarContent>
           <ChatList

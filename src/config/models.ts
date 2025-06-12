@@ -1,6 +1,7 @@
 import type { LLMModel } from '@/types';
 
-export const AVAILABLE_MODELS: LLMModel[] = [
+// Local LLM models
+export const LOCAL_MODELS: LLMModel[] = [
   {
     id: 'llama3-8b-instruct',
     name: 'Llama 3 8B Instruct',
@@ -17,3 +18,20 @@ export const AVAILABLE_MODELS: LLMModel[] = [
     description: 'A lightweight, high-performance model by Microsoft, instruction-tuned.',
   },
 ];
+
+// Online Gemini models
+export const GEMINI_MODELS: LLMModel[] = [
+  {
+    id: 'gemini-2.0-flash-exp',
+    name: 'Gemini 2.0 Flash (Latest)',
+    description: 'Google\'s latest experimental model with enhanced performance and capabilities.',
+  },
+  {
+    id: 'gemini-1.5-flash',
+    name: 'Gemini 1.5 Flash',
+    description: 'Google\'s fast and efficient model with multimodal capabilities.',
+  },
+];
+
+// For backward compatibility
+export const AVAILABLE_MODELS = LOCAL_MODELS;

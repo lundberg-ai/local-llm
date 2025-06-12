@@ -8,7 +8,7 @@ interface ChatMessage {
 
 export async function POST(request: NextRequest) {
 	try {
-		const { message, conversationHistory, apiKey } = await request.json();
+		const { message, conversationHistory, apiKey, modelId } = await request.json();
 
 		if (!message) {
 			return NextResponse.json({ error: 'Message is required' }, { status: 400 });
@@ -18,9 +18,12 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: 'API key is required for online mode' }, { status: 400 });
 		}
 
+		// Default to latest Gemini model if not specified
+		const selectedModel = modelId || 'gemini-2.0-flash-exp';
+
 		// Use the Google AI SDK directly to make the API call
 		const genAI = new GoogleGenerativeAI(apiKey);
-		const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+		const model = genAI.getGenerativeModel({ model: selectedModel });
 
 		// Prepare the prompt with conversation history if available
 		let prompt = message;
