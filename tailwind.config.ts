@@ -1,4 +1,4 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
 export default {
   darkMode: ['class'],
@@ -13,7 +13,7 @@ export default {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],
         code: ['Source Code Pro', 'monospace'],
-      },      colors: {
+      }, colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         card: {

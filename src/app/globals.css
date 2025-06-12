@@ -1,28 +1,41 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {  :root {
-    --background: hsl(210, 40%, 98%); /* Very light cool gray */
-    --foreground: hsl(210, 10%, 23%); /* Dark grayish blue */
-    --card: hsl(0, 0%, 100%); /* White */
+@layer base {
+  :root {
+    --background: hsl(210, 40%, 98%);
+    /* Very light cool gray */
+    --foreground: hsl(210, 10%, 23%);
+    /* Dark grayish blue */
+    --card: hsl(0, 0%, 100%);
+    /* White */
     --card-foreground: hsl(210, 10%, 23%);
-    --popover: hsl(0, 0%, 100%); /* White */
+    --popover: hsl(0, 0%, 100%);
+    /* White */
     --popover-foreground: hsl(210, 10%, 23%);
-    --primary: hsl(221, 83%, 53%); /* Vibrant Blue */
-    --primary-foreground: hsl(210, 40%, 98%); /* Light text on primary */
-    --secondary: hsl(210, 40%, 90%); /* Lighter blue/gray */
-    --secondary-foreground: hsl(221, 83%, 53%); /* Darker text on secondary */
+    --primary: hsl(221, 83%, 53%);
+    /* Vibrant Blue */
+    --primary-foreground: hsl(210, 40%, 98%);
+    /* Light text on primary */
+    --secondary: hsl(210, 40%, 90%);
+    /* Lighter blue/gray */
+    --secondary-foreground: hsl(221, 83%, 53%);
+    /* Darker text on secondary */
     --muted: hsl(210, 40%, 90%);
-    --muted-foreground: hsl(210, 8%, 45%); /* Medium gray */
-    --accent: hsl(38, 92%, 50%); /* Vibrant Orange/Yellow */
-    --accent-foreground: hsl(210, 10%, 23%); /* Dark text on accent */
+    --muted-foreground: hsl(210, 8%, 45%);
+    /* Medium gray */
+    --accent: hsl(38, 92%, 50%);
+    /* Vibrant Orange/Yellow */
+    --accent-foreground: hsl(210, 10%, 23%);
+    /* Dark text on accent */
     --destructive: hsl(0, 84%, 60%);
     --destructive-foreground: hsl(210, 40%, 98%);
-    --border: hsl(210, 40%, 85%); /* Slightly darker border for light theme */
+    --border: hsl(210, 40%, 85%);
+    /* Slightly darker border for light theme */
     --input: hsl(210, 40%, 90%);
-    --ring: hsl(221, 83%, 53%); /* Vibrant Blue for rings */
+    --ring: hsl(221, 83%, 53%);
+    /* Vibrant Blue for rings */
     --chart-1: hsl(221, 83%, 53%);
     --chart-2: hsl(38, 92%, 50%);
     --chart-3: hsl(160, 70%, 45%);
@@ -30,7 +43,8 @@
     --chart-5: hsl(0, 70%, 60%);
     --radius: 0.5rem;
 
-    --sidebar-background: hsl(210, 40%, 96%); /* Slightly off-white */
+    --sidebar-background: hsl(210, 40%, 96%);
+    /* Slightly off-white */
     --sidebar-foreground: hsl(210, 10%, 30%);
     --sidebar-primary: hsl(221, 83%, 53%);
     --sidebar-primary-foreground: hsl(210, 40%, 98%);
@@ -39,40 +53,58 @@
     --sidebar-border: hsl(210, 40%, 88%);
     --sidebar-ring: hsl(221, 83%, 53%);
   }
+
   .dark {
-    --background: hsl(180, 25%, 25%); /* Dark Slate Gray */
-    --foreground: hsl(0, 0%, 98%); /* Light color for text */
-    --card: hsl(180, 25%, 20%); /* Slightly darker than background */
+    --background: hsl(180, 25%, 25%);
+    /* Dark Slate Gray */
+    --foreground: hsl(0, 0%, 98%);
+    /* Light color for text */
+    --card: hsl(180, 25%, 20%);
+    /* Slightly darker than background */
     --card-foreground: hsl(0, 0%, 98%);
-    --popover: hsl(180, 25%, 15%); /* Darker for popovers */
+    --popover: hsl(180, 25%, 15%);
+    /* Darker for popovers */
     --popover-foreground: hsl(0, 0%, 98%);
-    --primary: hsl(180, 100%, 25%); /* Teal */
+    --primary: hsl(180, 100%, 25%);
+    /* Teal */
     --primary-foreground: hsl(0, 0%, 98%);
-    --secondary: hsl(180, 30%, 35%); /* A slightly lighter, muted teal */
+    --secondary: hsl(180, 30%, 35%);
+    /* A slightly lighter, muted teal */
     --secondary-foreground: hsl(0, 0%, 98%);
-    --muted: hsl(180, 15%, 40%); /* Muted color */
-    --muted-foreground: hsl(180, 10%, 70%); /* Lighter muted text */
-    --accent: hsl(183, 100%, 74%); /* Electric Blue */
-    --accent-foreground: hsl(180, 25%, 15%); /* Dark text on accent */
+    --muted: hsl(180, 15%, 40%);
+    /* Muted color */
+    --muted-foreground: hsl(180, 10%, 70%);
+    /* Lighter muted text */
+    --accent: hsl(183, 100%, 74%);
+    /* Electric Blue */
+    --accent-foreground: hsl(180, 25%, 15%);
+    /* Dark text on accent */
     --destructive: hsl(0, 70%, 50%);
     --destructive-foreground: hsl(0, 0%, 98%);
-    --border: hsl(180, 15%, 35%); /* Subtle border */
+    --border: hsl(180, 15%, 35%);
+    /* Subtle border */
     --input: hsl(180, 15%, 35%);
-    --ring: hsl(183, 100%, 74%); /* Electric Blue for rings */
+    --ring: hsl(183, 100%, 74%);
+    /* Electric Blue for rings */
     --chart-1: hsl(180, 100%, 25%);
     --chart-2: hsl(183, 100%, 74%);
     --chart-3: hsl(190, 80%, 60%);
     --chart-4: hsl(200, 70%, 55%);
     --chart-5: hsl(210, 60%, 50%);
 
-    --sidebar-background: hsl(180, 25%, 22%); /* Slightly different from main bg */
+    --sidebar-background: hsl(180, 25%, 22%);
+    /* Slightly different from main bg */
     --sidebar-foreground: hsl(0, 0%, 90%);
-    --sidebar-primary: hsl(180, 100%, 25%); /* Teal */
+    --sidebar-primary: hsl(180, 100%, 25%);
+    /* Teal */
     --sidebar-primary-foreground: hsl(0, 0%, 98%);
-    --sidebar-accent: hsl(183, 100%, 74%); /* Electric Blue */
-    --sidebar-accent-foreground: hsl(180, 25%, 15%); /* Dark text on accent */
+    --sidebar-accent: hsl(183, 100%, 74%);
+    /* Electric Blue */
+    --sidebar-accent-foreground: hsl(180, 25%, 15%);
+    /* Dark text on accent */
     --sidebar-border: hsl(180, 15%, 30%);
-    --sidebar-ring: hsl(183, 100%, 74%); /* Electric Blue */
+    --sidebar-ring: hsl(183, 100%, 74%);
+    /* Electric Blue */
   }
 }
 
@@ -80,6 +112,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
