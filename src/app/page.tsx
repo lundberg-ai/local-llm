@@ -168,7 +168,7 @@ export default function AipifyLocalPage() {
         console.warn("Could not remove corrupted chats from localStorage.");
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -292,17 +292,20 @@ export default function AipifyLocalPage() {
       if (mode === 'online' && apiKey) {
         const currentChat = updatedMessagesWithUser.find(chat => chat.id === chatId);
         const conversationHistory: HistoryItem[] = (currentChat?.messages || [])
-          .filter(msg => msg.id !== userMessage.id) 
+          .filter(msg => msg.id !== userMessage.id)
           .map(msg => ({
-            role: msg.role === 'assistant' ? 'model' : 'user', 
+            role: msg.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: msg.content }],
-          }));
+          }));        // Convert model ID to Genkit format
+        const genkitModelId = selectedModelId?.startsWith('googleai/')
+          ? selectedModelId
+          : `googleai/${selectedModelId}`;
 
         const flowInput: OnlineChatInput = {
           userMessage: content,
           history: conversationHistory,
           apiKey: apiKey,
-          modelId: selectedModelId,
+          modelId: genkitModelId,
         };
         const result = await onlineChatFlow(flowInput);
         assistantContent = result.assistantResponse;
@@ -390,7 +393,7 @@ export default function AipifyLocalPage() {
   };
 
   const handleOpenSettingsDialog = () => {
-    setTempApiKeyInput(apiKey || ''); 
+    setTempApiKeyInput(apiKey || '');
     setShowSettingsDialog(true);
   };
 
@@ -403,7 +406,7 @@ export default function AipifyLocalPage() {
         description: "Your Gemini API key has been updated.",
       });
     } else {
-      setApiKey(null); 
+      setApiKey(null);
       toast({
         title: "API Key Cleared",
         description: "Your Gemini API key has been removed.",
@@ -606,4 +609,4 @@ export default function AipifyLocalPage() {
     </SidebarProvider>
   );
 }
-    
+

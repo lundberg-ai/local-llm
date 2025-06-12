@@ -41,24 +41,27 @@ export async function onlineChatFlow(input: OnlineChatInput): Promise<OnlineChat
   const tempAI = genkit({
     plugins: [googleAI({ apiKey })],
   });
-
-  const selectedModel = tempAI.model(modelId || 'googleai/gemini-2.0-flash');
-
   try {
-    const genkitHistory: MessageData[] = history.map(item => ({
-      role: item.role as Role, // Cast Zod enum to Genkit's Role type
-      content: item.parts.map(part => ({ text: part.text }))
-    }));
+    // Convert history to a conversation context string
+    const conversationContext = history.length > 0
+      ? history.map(item => {
+        const role = item.role === 'model' ? 'Assistant' : 'User';
+        const text = item.parts.map(part => part.text).join(' ');
+        return `${role}: ${text}`;
+      }).join('\n')
+      : '';
 
-    const result = await selectedModel.generate({
+    const systemPrompt = conversationContext
+      ? `Previous conversation:\n${conversationContext}\n\nPlease respond naturally to the user's current message.`
+      : 'You are a helpful AI assistant. Respond naturally and helpfully to the user\'s message.';
+
+    const result = await tempAI.generate({
+      model: modelId || 'googleai/gemini-2.0-flash-exp',
+      system: systemPrompt,
       prompt: userMessage,
-      history: genkitHistory,
-      config: {
-        // temperature: 0.7, // Optional: configure generation parameters
-      }
     });
 
-    const responseText = result.text; 
+    const responseText = result.text;
 
     if (responseText === undefined || responseText === null) {
       console.warn("Gemini model returned undefined or null text response.", result);
