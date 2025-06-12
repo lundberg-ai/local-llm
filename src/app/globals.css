@@ -61,34 +61,41 @@
     --card-foreground: hsl(220, 15%, 88%);
     --popover: hsl(225, 10%, 14%); /* Monokai-inspired: Slightly darker for popovers */
     --popover-foreground: hsl(220, 15%, 88%);
-    --primary: hsl(150, 50%, 40%); /* Mild Green */
-    --primary-foreground: hsl(0, 0%, 98%); /* Bright White for contrast on green */
+    
+    --primary: hsl(180, 30%, 35%); /* Mild Teal/Green */
+    --primary-foreground: hsl(180, 10%, 90%); /* Light cool off-white for contrast */
+    
     --secondary: hsl(225, 8%, 25%); /* Monokai-inspired: Muted cool gray */
     --secondary-foreground: hsl(220, 15%, 75%); /* Monokai-inspired: Lighter text on secondary */
+    
     --muted: hsl(225, 8%, 20%); /* Monokai-inspired: Subtle muted color */
     --muted-foreground: hsl(220, 10%, 55%); /* Monokai-inspired: Lighter muted text */
-    --accent: hsl(150, 45%, 48%); /* Mild Green variant for hover/accent */
-    --accent-foreground: hsl(0, 0%, 98%); /* Bright White text on this green accent */
+    
+    --accent: hsl(180, 30%, 40%); /* Slightly Lighter Mild Teal/Green for hover/accent */
+    --accent-foreground: hsl(180, 10%, 90%); /* Light cool off-white for contrast */
+    
     --destructive: hsl(0, 70%, 55%);
     --destructive-foreground: hsl(0, 0%, 98%);
+    
     --border: hsl(225, 8%, 22%); /* Monokai-inspired: Subtle border */
     --input: hsl(225, 8%, 22%); /* Monokai-inspired: Input background */
-    --ring: hsl(150, 50%, 50%); /* Lighter primary green for rings */
+    
+    --ring: hsl(180, 30%, 45%); /* Lighter Mild Teal/Green for rings */
 
-    --chart-1: hsl(150, 50%, 40%); /* Primary Green */
-    --chart-2: hsl(150, 45%, 48%); /* Accent Green variant */
+    --chart-1: hsl(180, 30%, 35%); /* Primary Mild Teal/Green */
+    --chart-2: hsl(180, 30%, 40%); /* Accent Mild Teal/Green variant */
     --chart-3: hsl(260, 65%, 65%); /* Contrasting Purple */
     --chart-4: hsl(30, 80%, 60%);  /* Contrasting Orange */
     --chart-5: hsl(330, 70%, 60%); /* Contrasting Pink/Magenta */
 
     --sidebar-background: hsl(225, 10%, 14%);
     --sidebar-foreground: hsl(220, 15%, 80%);
-    --sidebar-primary: hsl(150, 50%, 40%); /* Mild Green for sidebar primary */
-    --sidebar-primary-foreground: hsl(0, 0%, 98%); /* Bright White for sidebar primary foreground */
-    --sidebar-accent: hsl(150, 45%, 48%); /* Mild Green variant for sidebar accent */
-    --sidebar-accent-foreground: hsl(0, 0%, 98%); /* Bright White for sidebar accent foreground */
+    --sidebar-primary: hsl(180, 30%, 35%); 
+    --sidebar-primary-foreground: hsl(180, 10%, 90%); 
+    --sidebar-accent: hsl(180, 30%, 40%); 
+    --sidebar-accent-foreground: hsl(180, 10%, 90%); 
     --sidebar-border: hsl(225, 8%, 20%);
-    --sidebar-ring: hsl(150, 50%, 50%); /* Lighter primary green for sidebar rings */
+    --sidebar-ring: hsl(180, 30%, 45%); 
   }
 }
 
