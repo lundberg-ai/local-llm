@@ -74,8 +74,8 @@
     --accent: hsl(180, 30%, 40%); /* Slightly Lighter Mild Teal/Green for hover/accent */
     --accent-foreground: hsl(180, 10%, 90%); /* Light cool off-white for contrast */
     
-    --destructive: hsl(0, 70%, 55%);
-    --destructive-foreground: hsl(0, 0%, 98%);
+    --destructive: hsl(0, 60%, 50%); /* Softer red */
+    --destructive-foreground: hsl(0, 0%, 98%); /* Kept light for contrast */
     
     --border: hsl(225, 8%, 22%); /* Monokai-inspired: Subtle border */
     --input: hsl(225, 8%, 22%); /* Monokai-inspired: Input background */
