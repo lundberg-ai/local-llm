@@ -55,56 +55,47 @@
   }
 
   .dark {
-    --background: hsl(180, 25%, 25%);
-    /* Dark Slate Gray */
-    --foreground: hsl(0, 0%, 98%);
-    /* Light color for text */
-    --card: hsl(180, 25%, 20%);
-    /* Slightly darker than background */
-    --card-foreground: hsl(0, 0%, 98%);
-    --popover: hsl(180, 25%, 15%);
-    /* Darker for popovers */
-    --popover-foreground: hsl(0, 0%, 98%);
-    --primary: hsl(180, 100%, 25%);
-    /* Teal */
-    --primary-foreground: hsl(0, 0%, 98%);
-    --secondary: hsl(180, 30%, 35%);
-    /* A slightly lighter, muted teal */
-    --secondary-foreground: hsl(0, 0%, 98%);
-    --muted: hsl(180, 15%, 40%);
-    /* Muted color */
-    --muted-foreground: hsl(180, 10%, 70%);
-    /* Lighter muted text */
-    --accent: hsl(183, 100%, 74%);
-    /* Electric Blue */
-    --accent-foreground: hsl(180, 25%, 15%);
-    /* Dark text on accent */
-    --destructive: hsl(0, 70%, 50%);
-    --destructive-foreground: hsl(0, 0%, 98%);
-    --border: hsl(180, 15%, 35%);
-    /* Subtle border */
-    --input: hsl(180, 15%, 35%);
-    --ring: hsl(183, 100%, 74%);
-    /* Electric Blue for rings */
-    --chart-1: hsl(180, 100%, 25%);
-    --chart-2: hsl(183, 100%, 74%);
-    --chart-3: hsl(190, 80%, 60%);
-    --chart-4: hsl(200, 70%, 55%);
-    --chart-5: hsl(210, 60%, 50%);
+    --background: hsl(225, 10%, 12%); /* Monokai-inspired: Very dark, slightly cool */
+    --foreground: hsl(220, 15%, 88%); /* Monokai-inspired: Soft off-white */
+    --card: hsl(225, 10%, 16%); /* Monokai-inspired: Slightly lighter than background */
+    --card-foreground: hsl(220, 15%, 88%);
+    --popover: hsl(225, 10%, 14%); /* Monokai-inspired: Slightly darker for popovers */
+    --popover-foreground: hsl(220, 15%, 88%);
+    
+    --primary: hsl(180, 30%, 35%); /* Mild Teal/Green */
+    --primary-foreground: hsl(180, 10%, 90%); /* Light cool off-white for contrast */
+    
+    --secondary: hsl(225, 8%, 25%); /* Monokai-inspired: Muted cool gray */
+    --secondary-foreground: hsl(220, 15%, 75%); /* Monokai-inspired: Lighter text on secondary */
+    
+    --muted: hsl(225, 8%, 20%); /* Monokai-inspired: Subtle muted color */
+    --muted-foreground: hsl(220, 10%, 55%); /* Monokai-inspired: Lighter muted text */
+    
+    --accent: hsl(180, 30%, 40%); /* Slightly Lighter Mild Teal/Green for hover/accent */
+    --accent-foreground: hsl(180, 10%, 90%); /* Light cool off-white for contrast */
+    
+    --destructive: hsl(0, 60%, 50%); /* Softer red */
+    --destructive-foreground: hsl(0, 0%, 98%); /* Kept light for contrast */
+    
+    --border: hsl(225, 8%, 22%); /* Monokai-inspired: Subtle border */
+    --input: hsl(225, 8%, 22%); /* Monokai-inspired: Input background */
+    
+    --ring: hsl(180, 30%, 45%); /* Lighter Mild Teal/Green for rings */
 
-    --sidebar-background: hsl(180, 25%, 22%);
-    /* Slightly different from main bg */
-    --sidebar-foreground: hsl(0, 0%, 90%);
-    --sidebar-primary: hsl(180, 100%, 25%);
-    /* Teal */
-    --sidebar-primary-foreground: hsl(0, 0%, 98%);
-    --sidebar-accent: hsl(183, 100%, 74%);
-    /* Electric Blue */
-    --sidebar-accent-foreground: hsl(180, 25%, 15%);
-    /* Dark text on accent */
-    --sidebar-border: hsl(180, 15%, 30%);
-    --sidebar-ring: hsl(183, 100%, 74%);
-    /* Electric Blue */
+    --chart-1: hsl(180, 30%, 35%); /* Primary Mild Teal/Green */
+    --chart-2: hsl(180, 30%, 40%); /* Accent Mild Teal/Green variant */
+    --chart-3: hsl(260, 65%, 65%); /* Contrasting Purple */
+    --chart-4: hsl(30, 80%, 60%);  /* Contrasting Orange */
+    --chart-5: hsl(330, 70%, 60%); /* Contrasting Pink/Magenta */
+
+    --sidebar-background: hsl(225, 10%, 14%);
+    --sidebar-foreground: hsl(220, 15%, 80%);
+    --sidebar-primary: hsl(180, 30%, 35%); 
+    --sidebar-primary-foreground: hsl(180, 10%, 90%); 
+    --sidebar-accent: hsl(180, 30%, 40%); 
+    --sidebar-accent-foreground: hsl(180, 10%, 90%); 
+    --sidebar-border: hsl(225, 8%, 20%);
+    --sidebar-ring: hsl(180, 30%, 45%); 
   }
 }
 
