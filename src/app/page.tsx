@@ -24,7 +24,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+// Switch component is no longer needed for mode toggle
+// import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -291,9 +292,9 @@ export default function AipifyLocalPage() {
       if (mode === 'online' && apiKey) {
         const currentChat = updatedMessagesWithUser.find(chat => chat.id === chatId);
         const conversationHistory: HistoryItem[] = (currentChat?.messages || [])
-          .filter(msg => msg.id !== userMessage.id) // Exclude the latest user message as it's the prompt
+          .filter(msg => msg.id !== userMessage.id) 
           .map(msg => ({
-            role: msg.role === 'assistant' ? 'model' : 'user', // Map to 'model' for assistant
+            role: msg.role === 'assistant' ? 'model' : 'user', 
             parts: [{ text: msg.content }],
           }));
 
@@ -354,13 +355,14 @@ export default function AipifyLocalPage() {
     }
   };
 
-  const handleModeSwitchChange = (isOnlineChecked: boolean) => {
-    if (isOnlineChecked) {
+  const handleModeSwitchChange = (isAttemptingOnline: boolean) => {
+    if (isAttemptingOnline) {
       if (apiKey) {
         setMode('online');
       } else {
         setTempApiKeyInput('');
         setShowApiKeyDialog(true);
+        // Do not change mode here, dialog submit will handle it. Switch will reflect current mode.
       }
     } else {
       setMode('offline');
@@ -388,7 +390,7 @@ export default function AipifyLocalPage() {
   };
 
   const handleOpenSettingsDialog = () => {
-    setTempApiKeyInput(apiKey || ''); // Pre-fill with current key
+    setTempApiKeyInput(apiKey || ''); 
     setShowSettingsDialog(true);
   };
 
@@ -401,7 +403,7 @@ export default function AipifyLocalPage() {
         description: "Your Gemini API key has been updated.",
       });
     } else {
-      setApiKey(null); // Clear the API key
+      setApiKey(null); 
       toast({
         title: "API Key Cleared",
         description: "Your Gemini API key has been removed.",
@@ -492,20 +494,16 @@ export default function AipifyLocalPage() {
             </h2>
           </div>
           <div className="flex-grow"></div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="mode-switch" className="text-sm flex items-center gap-1 cursor-pointer select-none" onClick={() => handleModeSwitchChange(mode === 'offline')}>
-                {mode === 'offline' ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4 text-primary" />}
-                <span>{mode === 'offline' ? 'Offline' : 'Online'}</span>
-              </Label>
-              <Switch
-                id="mode-switch"
-                checked={mode === 'online'}
-                onCheckedChange={handleModeSwitchChange}
-                disabled={isLoadingResponse || isGeneratingTitle}
-                aria-label={`Switch to ${mode === 'offline' ? 'Online' : 'Offline'} mode`}
-              />
-            </div>
+          <div className="flex items-center space-x-2"> {/* Reduced space-x-4 to space-x-2 */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleModeSwitchChange(mode === 'offline')}
+              disabled={isLoadingResponse || isGeneratingTitle}
+              aria-label={`Switch to ${mode === 'offline' ? 'Online' : 'Offline'} mode`}
+            >
+              {mode === 'online' ? <Wifi className="h-5 w-5 text-primary" /> : <WifiOff className="h-5 w-5" />}
+            </Button>
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
@@ -608,5 +606,4 @@ export default function AipifyLocalPage() {
     </SidebarProvider>
   );
 }
-
     
