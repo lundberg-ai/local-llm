@@ -2,7 +2,6 @@
 
 'use server';
 
-import { ai } from '../genkit';
 import { z } from 'zod';
 
 const SummarizeConversationInputSchema = z.object({
@@ -19,27 +18,11 @@ const SummarizeConversationOutputSchema = z.object({
 
 type SummarizeConversationOutput = z.infer<typeof SummarizeConversationOutputSchema>;
 
-export async function summarizeConversation(
-  input: SummarizeConversationInput
-): Promise<SummarizeConversationOutput> {
-  return summarizeConversationFlow(input);
+// Mock implementation for summarizing a conversation
+export async function summarizeConversation({
+  conversationText,
+}: {
+  conversationText: string;
+}): Promise<SummarizeConversationOutput> {
+  return { summary: `Mock summary for: ${conversationText}` };
 }
-
-const summarizeConversationPrompt = ai.definePrompt({
-  name: 'summarizeConversationPrompt',
-  input: { schema: SummarizeConversationInputSchema },
-  output: { schema: SummarizeConversationOutputSchema },
-  prompt: `Summarize the following chat conversation. Provide a concise and informative summary that captures the main points and topics discussed.\n\nConversation:\n{{{conversationText}}}`,
-});
-
-const summarizeConversationFlow = ai.defineFlow(
-  {
-    name: 'summarizeConversationFlow',
-    inputSchema: SummarizeConversationInputSchema,
-    outputSchema: SummarizeConversationOutputSchema,
-  },
-  async input => {
-    const { output } = await summarizeConversationPrompt(input);
-    return output!;
-  }
-);

@@ -92,6 +92,45 @@ export default function AipifyLocalPage() {
 		}
 	};
 
+	const handleSendMessage = async (chatId: string, content: string) => {
+		const userMessage: Message = {
+			id: crypto.randomUUID(),
+			role: "user",
+			content,
+			timestamp: new Date(),
+		};
+
+		// Update chat with user message first
+		setChats((prevChats) =>
+			prevChats.map((chat) =>
+				chat.id === chatId
+					? { ...chat, messages: [...chat.messages, userMessage] }
+					: chat
+			)
+		);
+		setIsLoadingResponse(true);
+
+		// Mock assistant response
+		const assistantMessage: Message = {
+			id: crypto.randomUUID(),
+			role: "assistant",
+			content: `You said: "${content}"`,
+			timestamp: new Date(),
+		};
+
+		// Update chat with assistant message
+		setTimeout(() => {
+			setChats((prevChats) =>
+				prevChats.map((chat) =>
+					chat.id === chatId
+						? { ...chat, messages: [...chat.messages, assistantMessage] }
+						: chat
+				)
+			);
+			setIsLoadingResponse(false);
+		}, 1000); // Simulate delay
+	};
+
 	return (
 		<div>
 			<button onClick={toggleTheme}>Toggle Theme</button>
@@ -104,21 +143,7 @@ export default function AipifyLocalPage() {
 			/>
 			<ChatWindow
 				chatSession={chats.find((chat) => chat.id === activeChatId) || null}
-				onSendMessage={async (chatId, content) => {
-					const userMessage: Message = {
-						id: crypto.randomUUID(),
-						role: "user",
-						content,
-						timestamp: new Date(),
-					};
-					setChats((prevChats) =>
-						prevChats.map((chat) =>
-							chat.id === chatId
-								? { ...chat, messages: [...chat.messages, userMessage] }
-								: chat
-						)
-					);
-				}}
+				onSendMessage={handleSendMessage}
 				isLoadingResponse={isLoadingResponse}
 			/>
 			<LLMSelector

@@ -9,51 +9,11 @@
  * - GenerateConversationTitleOutput - The return type for the generateConversationTitle function.
  */
 
-import { ai } from '../genkit';
-import { z } from 'genkit';
-
-const GenerateConversationTitleInputSchema = z.object({
-  conversationHistory: z
-    .string()
-    .describe('The complete history of the conversation.'),
-});
-export type GenerateConversationTitleInput = z.infer<
-  typeof GenerateConversationTitleInputSchema
->;
-
-const GenerateConversationTitleOutputSchema = z.object({
-  title: z.string().describe('The generated title for the conversation.'),
-});
-export type GenerateConversationTitleOutput = z.infer<
-  typeof GenerateConversationTitleOutputSchema
->;
-
-export async function generateConversationTitle(
-  input: GenerateConversationTitleInput
-): Promise<GenerateConversationTitleOutput> {
-  return generateConversationTitleFlow(input);
+// Mock implementation for generating conversation titles
+export async function generateConversationTitle({
+  conversationHistory,
+}: {
+  conversationHistory: string;
+}) {
+  return { title: `Mock title for: ${conversationHistory}` };
 }
-
-const prompt = ai.definePrompt({
-  name: 'generateConversationTitlePrompt',
-  input: { schema: GenerateConversationTitleInputSchema },
-  output: { schema: GenerateConversationTitleOutputSchema },
-  prompt: `You are an expert at generating concise and descriptive titles for conversations.
-  Given the following conversation history, generate a title that accurately reflects the main topic of the conversation.
-  The title should be no more than 10 words.
-
-  Conversation History: {{{conversationHistory}}}
-  `,
-});
-
-const generateConversationTitleFlow = ai.defineFlow(
-  {
-    name: 'generateConversationTitleFlow',
-    inputSchema: GenerateConversationTitleInputSchema,
-    outputSchema: GenerateConversationTitleOutputSchema,
-  },
-  async input => {
-    const { output } = await prompt(input);
-    return output!;
-  }
-);
