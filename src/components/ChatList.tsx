@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ChatSession } from "@/types";
@@ -23,6 +24,12 @@ export function ChatList({
   onDeleteChat,
   disabled,
 }: ChatListProps) {
+  const handleChatKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, chatId: string) => {
+    if (event.key === "Enter" || event.key === " ") {
+      onSelectChat(chatId);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="p-2">
@@ -45,15 +52,20 @@ export function ChatList({
         <ul className="space-y-1">
           {chats.map((chat) => (
             <li key={chat.id}>
-              <button
-                onClick={() => onSelectChat(chat.id)}
-                disabled={disabled}
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => !disabled && onSelectChat(chat.id)}
+                onKeyDown={(e) => !disabled && handleChatKeyDown(e, chat.id)}
+                aria-disabled={disabled}
+                aria-current={activeChatId === chat.id ? "page" : undefined}
                 className={cn(
-                  "w-full flex items-center justify-between text-left p-2 rounded-md text-sm truncate",
+                  "w-full flex items-center justify-between text-left p-2 rounded-md text-sm truncate cursor-pointer",
                   "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-ring",
                   activeChatId === chat.id
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground"
+                    : "text-sidebar-foreground",
+                  disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <div className="flex items-center gap-2 truncate">
@@ -65,7 +77,7 @@ export function ChatList({
                   size="icon"
                   className="h-6 w-6 shrink-0 opacity-50 hover:opacity-100 hover:bg-destructive/20 hover:text-destructive"
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Prevent triggering the div's onClick
                     onDeleteChat(chat.id);
                   }}
                   disabled={disabled}
@@ -73,7 +85,7 @@ export function ChatList({
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
-              </button>
+              </div>
             </li>
           ))}
         </ul>
