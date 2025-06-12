@@ -116,4 +116,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Ensure headers have consistent height */
+  [data-sidebar="header"],
+  .header-64 {
+    box-sizing: border-box;
+    height: 64px !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
+  }
 }

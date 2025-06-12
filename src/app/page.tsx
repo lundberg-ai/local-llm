@@ -61,7 +61,7 @@ export default function AipifyLocalPage() {
   // Save chats to local storage whenever they change
   useEffect(() => {
     if (chats.length > 0 || localStorage.getItem("aipify-local-chats")) { // Avoid saving empty initial state if nothing was loaded
-        localStorage.setItem("aipify-local-chats", JSON.stringify(chats));
+      localStorage.setItem("aipify-local-chats", JSON.stringify(chats));
     }
   }, [chats]);
 
@@ -93,7 +93,7 @@ export default function AipifyLocalPage() {
     setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
     if (activeChatId === chatId) {
       setActiveChatId(chats.length > 1 ? chats.find(c => c.id !== chatId)?.id || null : null);
-      if (chats.length <=1) createNewChat(); // if last chat is deleted, create a new one
+      if (chats.length <= 1) createNewChat(); // if last chat is deleted, create a new one
     }
   };
 
@@ -151,7 +151,7 @@ export default function AipifyLocalPage() {
     setIsLoadingResponse(true);
 
     // Simulate API call and AI response
-    await new Promise(resolve => setTimeout(resolve, 1500)); 
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
@@ -183,15 +183,14 @@ export default function AipifyLocalPage() {
 
   return (
     <SidebarProvider defaultOpen>
-      <Sidebar collapsible="icon" side="left" className="border-r-sidebar-border">
-        <SidebarHeader className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <AipifyLogo className="text-accent h-8 w-8" />
-            <h1 className="font-headline text-2xl font-semibold text-sidebar-foreground">
-              Aipify Local
-            </h1>
-          </div>
-        </SidebarHeader>
+      <Sidebar collapsible="icon" side="left" className="border-r-sidebar-border">        <SidebarHeader className="h-16 flex items-center p-4 border-b border-sidebar-border min-h-[64px] max-h-[64px]">
+        <div className="flex items-center gap-2">
+          <AipifyLogo className="text-accent h-8 w-8" />
+          <h1 className="font-headline text-2xl font-semibold text-sidebar-foreground">
+            Aipify Local
+          </h1>
+        </div>
+      </SidebarHeader>
         <LLMSelector
           models={models}
           selectedModelId={selectedModelId}
@@ -217,11 +216,11 @@ export default function AipifyLocalPage() {
       </Sidebar>
 
       <SidebarInset>
-        <div className="flex h-16 items-center justify-between p-4 border-b border-border sticky top-0 bg-background z-10 md:justify-end">
+        <div className="flex h-16 items-center justify-between p-4 border-b border-border sticky top-0 bg-background z-10 md:justify-end min-h-[64px] max-h-[64px] header-64">
           <SidebarTrigger className="md:hidden">
-             <PanelLeft />
+            <PanelLeft />
           </SidebarTrigger>
-           <h2 className="text-lg font-semibold truncate md:hidden font-headline">
+          <h2 className="text-lg font-semibold truncate md:hidden font-headline">
             {activeChat?.title || "Chat"}
           </h2>
           {/* Placeholder for potential top-right actions in header */}
