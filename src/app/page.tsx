@@ -33,16 +33,15 @@ export default function AipifyLocalPage() {
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
   const { toast } = useToast();
-
   // Load chats from local storage on mount
   useEffect(() => {
     const storedChats = localStorage.getItem("aipify-local-chats");
     if (storedChats) {
       try {
-        const parsedChats: ChatSession[] = JSON.parse(storedChats).map((chat: any) => ({
+        const parsedChats: ChatSession[] = JSON.parse(storedChats).map((chat: ChatSession & { createdAt: string; messages: Array<Message & { timestamp: string }> }) => ({
           ...chat,
           createdAt: new Date(chat.createdAt),
-          messages: chat.messages.map((msg: any) => ({
+          messages: chat.messages.map((msg: Message & { timestamp: string }) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
           })),
@@ -56,7 +55,7 @@ export default function AipifyLocalPage() {
         localStorage.removeItem("aipify-local-chats"); // Clear corrupted data
       }
     }
-  }, []);
+  }, []); // Empty dependency array - only run on mount
 
   // Save chats to local storage whenever they change
   useEffect(() => {
@@ -76,13 +75,12 @@ export default function AipifyLocalPage() {
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
   }, [selectedModelId]);
-
   // Create initial chat if none exist
   useEffect(() => {
     if (chats.length === 0 && !localStorage.getItem("aipify-local-chats")) { // only if truly empty start
       createNewChat();
     }
-  }, [chats.length, createNewChat]);
+  }, [chats.length]); // Remove createNewChat from dependencies to avoid infinite loop
 
 
   const handleSelectChat = (chatId: string) => {
@@ -223,10 +221,9 @@ export default function AipifyLocalPage() {
             {activeChat?.title || "Chat"}
           </h2>
           {/* Placeholder for potential top-right actions in header */}
-          <div className="md:hidden w-8"></div> {/* Spacer for mobile title centering */}
-        </div>
+          <div className="md:hidden w-8"></div> {/* Spacer for mobile title centering */}        </div>
         <ChatWindow
-          chatSession={activeChat}
+          chatSession={activeChat || null}
           onSendMessage={handleSendMessage}
           isLoadingResponse={isLoadingResponse}
         />
