@@ -21,7 +21,18 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, Settings2, Sun, Moon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound } from "lucide-react";
 
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
@@ -34,10 +45,15 @@ export default function AipifyLocalPage() {
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  const [mode, setMode] = useState<'offline' | 'online'>('offline');
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [tempApiKeyInput, setTempApiKeyInput] = useState('');
+
   const { toast } = useToast();
 
+  // Theme initialization
   useEffect(() => {
-    // Determine initial theme (localStorage > system preference > default 'light')
     let initialUserTheme: 'light' | 'dark' = 'light';
     try {
       const storedTheme = localStorage.getItem('aipify-local-theme') as 'light' | 'dark' | null;
@@ -51,27 +67,21 @@ export default function AipifyLocalPage() {
       }
     } catch (e) {
       console.warn("Could not access localStorage for theme preference.");
-      // Fallback to system preference if localStorage fails
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (systemPrefersDark) {
         initialUserTheme = 'dark';
       }
     }
-    
-    setTheme(initialUserTheme); // Set state
-
-    // Apply class to HTML element based on resolved initial theme
-    // This is done here initially and also in the second useEffect on theme change
+    setTheme(initialUserTheme);
     if (initialUserTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, []); // Empty dependency array: run once on mount
+  }, []);
 
+  // Theme persistence
   useEffect(() => {
-    // This effect runs when `theme` state changes (e.g., from the toggle button)
-    // or on initial load after the first effect sets the theme.
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
       try {
@@ -87,11 +97,42 @@ export default function AipifyLocalPage() {
         console.warn("Could not save theme preference to localStorage.");
       }
     }
-  }, [theme]); // Dependency: run when `theme` changes
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
+
+  // Mode and API Key initialization from localStorage
+  useEffect(() => {
+    const storedMode = localStorage.getItem('aipify-local-mode') as 'offline' | 'online' | null;
+    const storedApiKey = localStorage.getItem('aipify-local-api-key');
+
+    if (storedMode === 'online' && storedApiKey) {
+      setApiKey(storedApiKey);
+      setMode('online');
+    } else {
+      setMode('offline'); // Default to offline if not fully configured for online
+      if (storedApiKey) { // If there's a key but mode wasn't online, still load it (for next attempt)
+        setApiKey(storedApiKey);
+      }
+    }
+  }, []);
+
+  // Mode and API Key persistence to localStorage
+  useEffect(() => {
+    localStorage.setItem('aipify-local-mode', mode);
+    if (apiKey) {
+      localStorage.setItem('aipify-local-api-key', apiKey);
+    } else {
+      // If mode is online but API key becomes null, switch to offline and remove key
+      if (mode === 'online') {
+        setMode('offline');
+      }
+      localStorage.removeItem('aipify-local-api-key');
+    }
+  }, [mode, apiKey]);
+
 
   // Load chats from local storage on mount
   useEffect(() => {
@@ -112,14 +153,14 @@ export default function AipifyLocalPage() {
         }
       } catch (error) {
         console.error("Failed to parse chats from local storage:", error);
-        localStorage.removeItem("aipify-local-chats"); // Clear corrupted data
+        localStorage.removeItem("aipify-local-chats");
       }
     }
-  }, []); // Empty dependency array - only run on mount
+  }, []);
 
   // Save chats to local storage whenever they change
   useEffect(() => {
-    if (chats.length > 0 || localStorage.getItem("aipify-local-chats")) { // Avoid saving empty initial state if nothing was loaded
+    if (chats.length > 0 || localStorage.getItem("aipify-local-chats")) {
       localStorage.setItem("aipify-local-chats", JSON.stringify(chats));
     }
   }, [chats]);
@@ -127,7 +168,7 @@ export default function AipifyLocalPage() {
   const createNewChat = useCallback(() => {
     const newChat: ChatSession = {
       id: crypto.randomUUID(),
-      title: "New Chat", // Placeholder, will be generated
+      title: "New Chat",
       messages: [],
       createdAt: new Date(),
       modelId: selectedModelId,
@@ -151,7 +192,7 @@ export default function AipifyLocalPage() {
     setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
     if (activeChatId === chatId) {
       setActiveChatId(chats.length > 1 ? chats.find(c => c.id !== chatId)?.id || null : null);
-      if (chats.length <= 1) createNewChat(); 
+      if (chats.length <= 1) createNewChat();
     }
   };
 
@@ -207,12 +248,15 @@ export default function AipifyLocalPage() {
     );
     setIsLoadingResponse(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Placeholder for actual AI call logic based on mode
+    const llmName = mode === 'online' ? "Gemini (Online)" : (models.find(m => m.id === selectedModelId)?.name || 'Local LLM');
+    
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
 
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: "assistant",
-      content: `As ${models.find(m => m.id === selectedModelId)?.name || 'the Local LLM'}, I received: "${content}". This is a mock response.`,
+      content: `As ${llmName}, I received: "${content}". This is a mock response.`,
       timestamp: new Date(),
     };
 
@@ -234,6 +278,41 @@ export default function AipifyLocalPage() {
     setIsLoadingResponse(false);
   };
 
+  const handleModeSwitchChange = (isOnlineChecked: boolean) => {
+    if (isOnlineChecked) { // User wants to switch to Online
+      if (apiKey) {
+        setMode('online');
+      } else {
+        setTempApiKeyInput(''); // Clear previous input before showing dialog
+        setShowApiKeyDialog(true);
+        // Mode remains 'offline'. Switch is controlled by `mode === 'online'`,
+        // so it will flip back if dialog is cancelled without API key.
+      }
+    } else { // User wants to switch to Offline
+      setMode('offline');
+    }
+  };
+
+  const handleApiKeyDialogSubmit = () => {
+    if (tempApiKeyInput.trim()) {
+      setApiKey(tempApiKeyInput.trim());
+      setMode('online');
+      setShowApiKeyDialog(false);
+    } else {
+      toast({
+        title: "API Key Required",
+        description: "Please enter your Gemini API key.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleApiKeyDialogClose = () => {
+    setShowApiKeyDialog(false);
+    setTempApiKeyInput(''); // Clear any entered text
+    // If API key is still null, the switch (checked={mode === 'online'}) will correctly show 'offline'.
+  };
+
   const activeChat = chats.find((chat) => chat.id === activeChatId);
 
   return (
@@ -251,7 +330,7 @@ export default function AipifyLocalPage() {
           models={models}
           selectedModelId={selectedModelId}
           onSelectModel={handleSelectModel}
-          disabled={isLoadingResponse || isGeneratingTitle}
+          disabled={isLoadingResponse || isGeneratingTitle || mode === 'online'} // Disable model selection in online mode for now
         />
         <SidebarContent>
           <ChatList
@@ -282,7 +361,20 @@ export default function AipifyLocalPage() {
             </h2>
           </div>
           <div className="flex-grow"></div>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="mode-switch" className="text-sm flex items-center gap-1 cursor-pointer select-none" onClick={() => handleModeSwitchChange(mode === 'offline')}>
+                {mode === 'offline' ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4 text-primary" />}
+                <span>{mode === 'offline' ? 'Offline' : 'Online'}</span>
+              </Label>
+              <Switch
+                id="mode-switch"
+                checked={mode === 'online'}
+                onCheckedChange={handleModeSwitchChange}
+                disabled={isLoadingResponse || isGeneratingTitle}
+                aria-label={`Switch to ${mode === 'offline' ? 'Online' : 'Offline'} mode`}
+              />
+            </div>
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
@@ -294,8 +386,57 @@ export default function AipifyLocalPage() {
           isLoadingResponse={isLoadingResponse}
         />
       </SidebarInset>
+
+      <Dialog open={showApiKeyDialog} onOpenChange={(openState) => {
+          if (!openState) {
+            handleApiKeyDialogClose();
+          } else {
+            // This case (opening via onOpenChange) is less common when Dialog is fully controlled
+            // setShowApiKeyDialog(true);
+          }
+        }}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-accent" />
+              Enter Gemini API Key
+            </DialogTitle>
+            <DialogDescription>
+              To use Online Mode with Gemini, please enter your API key. You can get one from{" "}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-primary hover:text-primary/80"
+              >
+                Google AI Studio
+              </a>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="apiKeyInput" className="text-right">
+                API Key
+              </Label>
+              <Input
+                id="apiKeyInput"
+                value={tempApiKeyInput}
+                onChange={(e) => setTempApiKeyInput(e.target.value)}
+                className="col-span-3"
+                placeholder="Enter your API key"
+                type="password"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleApiKeyDialogClose}>Cancel</Button>
+            <Button onClick={handleApiKeyDialogSubmit}>Save & Use Online</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
+    
 
     
