@@ -1,16 +1,14 @@
-
 "use client";
 
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import type { ChatSession, Message, LLMModel } from "@/types";
-import { AVAILABLE_MODELS } from "@/config/models";
+import { AVAILABLE_MODELS, LOCAL_MODELS, GEMINI_MODELS } from "@/config/models";
 import { ChatList } from "@/components/ChatList";
 import { ChatWindow } from "@/components/ChatWindow";
 import { LLMSelector } from "@/components/LLMSelector";
 import AipifyLogo from "@/components/icons/AipifyLogo";
 import { generateConversationTitle as generateTitleFlow } from "@/ai/flows/generate-conversation-title";
-import { onlineChatFlow, type HistoryItem as OnlineFlowHistoryItem } from "@/ai/flows/online-chat-flow";
 import { useToast } from "@/hooks/use-toast";
 import {
   SidebarProvider,
@@ -37,61 +35,58 @@ import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound } from "lucide
 
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [models] = useState<LLMModel[]>(AVAILABLE_MODELS);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null); const [models, setModels] = useState<LLMModel[]>(LOCAL_MODELS);
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    AVAILABLE_MODELS[0]?.id
+    LOCAL_MODELS[0]?.id // Default to first local model
   );
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  const [mode, setMode] = useState<'offline' | 'online'>('offline');
+  const [mode, setMode] = useState<'offline' | 'online'>('offline'); // Default to offline mode
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [tempApiKeyInput, setTempApiKeyInput] = useState('');
 
   const { toast } = useToast();
 
+  // Theme initialization
   useEffect(() => {
     let initialUserTheme: 'light' | 'dark' = 'light';
     try {
       const storedTheme = localStorage.getItem('aipify-local-theme') as 'light' | 'dark' | null;
       if (storedTheme) {
         initialUserTheme = storedTheme;
-      } else if (typeof window !== 'undefined' && window.matchMedia) {
+      } else {
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (systemPrefersDark) {
           initialUserTheme = 'dark';
         }
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not access localStorage for theme preference.");
     }
     setTheme(initialUserTheme);
-    if (typeof document !== 'undefined') {
-      if (initialUserTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    if (initialUserTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
+  // Theme persistence
   useEffect(() => {
-    if (typeof document !== 'undefined') {
+    if (typeof window !== 'undefined') {
       if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        try {
+        document.documentElement.classList.add('dark'); try {
           localStorage.setItem('aipify-local-theme', 'dark');
-        } catch (e) {
+        } catch {
           console.warn("Could not save theme preference to localStorage.");
         }
       } else {
         document.documentElement.classList.remove('dark');
         try {
           localStorage.setItem('aipify-local-theme', 'light');
-        } catch (e) {
+        } catch {
           console.warn("Could not save theme preference to localStorage.");
         }
       }
@@ -102,6 +97,7 @@ export default function AipifyLocalPage() {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
+  // Mode and API Key initialization from localStorage
   useEffect(() => {
     try {
       const storedMode = localStorage.getItem('aipify-local-mode') as 'offline' | 'online' | null;
@@ -116,12 +112,13 @@ export default function AipifyLocalPage() {
           setApiKey(storedApiKey);
         }
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not access localStorage for mode/API key.");
-      setMode('offline');
+      setMode('offline'); // Default to offline if localStorage fails
     }
   }, []);
 
+  // Mode and API Key persistence to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('aipify-local-mode', mode);
@@ -129,28 +126,34 @@ export default function AipifyLocalPage() {
         localStorage.setItem('aipify-local-api-key', apiKey);
       } else {
         if (mode === 'online') {
+          // If online mode is active but API key is removed/null, switch to offline
+          // This case might be less common if API key removal UI isn't present
+          // but good for robustness.
           setMode('offline');
-        }
-        localStorage.removeItem('aipify-local-api-key');
+        } localStorage.removeItem('aipify-local-api-key');
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not save mode/API key to localStorage.");
     }
   }, [mode, apiKey]);
 
+
+  // Load chats from local storage on mount
   useEffect(() => {
     try {
       const storedChats = localStorage.getItem("aipify-local-chats");
       if (storedChats) {
-        const parsedChats: ChatSession[] = JSON.parse(storedChats).map((chat: any) => ({
+        const parsedChats: ChatSession[] = JSON.parse(storedChats).map((chat: ChatSession & { createdAt: string; messages: Array<Message & { timestamp: string }> }) => ({
           ...chat,
           createdAt: new Date(chat.createdAt),
-          messages: chat.messages.map((msg: any) => ({
+          messages: chat.messages.map((msg: Message & { timestamp: string }) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
           })),
         }));
         setChats(parsedChats);
+        // Set active chat only if parsedChats is not empty and activeChatId is not already set
+        // (which it shouldn't be on initial mount for this effect)
         if (parsedChats.length > 0 && !activeChatId) {
           setActiveChatId(parsedChats[0].id);
         }
@@ -158,20 +161,21 @@ export default function AipifyLocalPage() {
     } catch (error) {
       console.error("Failed to parse chats from local storage:", error);
       try {
-        localStorage.removeItem("aipify-local-chats");
-      } catch (e) {
+        localStorage.removeItem("aipify-local-chats"); // Attempt to clear corrupted data
+      } catch {
         console.warn("Could not remove corrupted chats from localStorage.");
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // CRITICAL: Changed dependency array from [activeChatId] to []
 
+  // Save chats to local storage whenever they change
   useEffect(() => {
-    try {
+    try {      // Avoid writing an empty array if localStorage didn't have chats initially
       if (chats.length > 0 || localStorage.getItem("aipify-local-chats")) {
         localStorage.setItem("aipify-local-chats", JSON.stringify(chats));
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not save chats to localStorage.");
     }
   }, [chats]);
@@ -182,23 +186,26 @@ export default function AipifyLocalPage() {
       title: "New Chat",
       messages: [],
       createdAt: new Date(),
-      modelId: selectedModelId,
+      modelId: selectedModelId, // Use the currently selected model for new chats
     };
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
-  }, [selectedModelId]);
-
+  }, [selectedModelId]); // Dependency on selectedModelId ensures new chats get the current model
   useEffect(() => {
     let hasStoredChats = false;
     try {
       hasStoredChats = !!localStorage.getItem("aipify-local-chats");
-    } catch (e) {
+    } catch {
       // localStorage not available or accessible
     }
+
+    // Only create a new chat if there are no chats in state AND no chats in storage.
+    // This prevents creating a new chat if chats are about to be loaded from storage.
     if (chats.length === 0 && !hasStoredChats) {
       createNewChat();
     }
-  }, [chats.length, createNewChat]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chats.length, createNewChat]); // createNewChat is a dependency
 
 
   const handleSelectChat = (chatId: string) => {
@@ -215,11 +222,13 @@ export default function AipifyLocalPage() {
       if (activeChatId === chatId) {
         if (updatedChats.length > 0) {
           setActiveChatId(updatedChats[0].id);
+          // Also update selectedModelId to the model of the new active chat
           if (updatedChats[0].modelId) {
             setSelectedModelId(updatedChats[0].modelId);
           }
         } else {
-          setActiveChatId(null); 
+          setActiveChatId(null); // No chats left
+          // createNewChat(); // This will be handled by the useEffect for initial chat creation
         }
       }
       return updatedChats;
@@ -260,7 +269,6 @@ export default function AipifyLocalPage() {
       setIsGeneratingTitle(false);
     }
   };
-
   const handleSendMessage = async (chatId: string, content: string) => {
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -269,6 +277,7 @@ export default function AipifyLocalPage() {
       timestamp: new Date(),
     };
 
+    // Update chat with user message first
     setChats((prevChats) =>
       prevChats.map((chat) =>
         chat.id === chatId
@@ -276,72 +285,72 @@ export default function AipifyLocalPage() {
           : chat
       )
     );
-    setIsLoadingResponse(true);
+    setIsLoadingResponse(true); let assistantContent: string;
+    const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM');
 
-    let assistantMessage: Message;
+    try {
+      if (mode === 'online' && apiKey) {
+        // Get conversation history for context
+        const currentChat = chats.find(chat => chat.id === chatId);
+        const conversationHistory = currentChat?.messages || [];
 
-    if (mode === 'online' && apiKey) {
-      try {
-        const currentChatSession = chats.find(c => c.id === chatId);
-        // Ensure userMessage is added to history before sending to flow
-        const messagesForHistory = currentChatSession ? [...currentChatSession.messages, userMessage] : [userMessage];
-        
-        const flowHistory: OnlineFlowHistoryItem[] = messagesForHistory
-          .filter(msg => msg.role === 'user' || msg.role === 'assistant')
-          .slice(0, -1) // Exclude the current user message, it's passed as `userMessage` param
-          .map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.content }],
-          }));
-        
-        const response = await onlineChatFlow({
-          userMessage: content,
-          history: flowHistory,
-          apiKey: apiKey,
-          // modelId: 'googleai/gemini-pro' // or use a state for online model selection
+        // Make API call to our chat endpoint
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }, body: JSON.stringify({
+            message: content,
+            conversationHistory: conversationHistory,
+            apiKey: apiKey,
+            modelId: selectedModelId,
+            modelName: llmName,
+          }),
         });
 
-        assistantMessage = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: response.assistantResponse,
-          timestamp: new Date(),
-        };
-      } catch (error: any) {
-        console.error("Error calling online chat flow:", error);
-        toast({
-          title: "Online Chat Error",
-          description: error.message || "Failed to get response from Gemini.",
-          variant: "destructive",
-        });
-        assistantMessage = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: "Sorry, I couldn't connect to the online service. " + (error.message || "Please check your API key or network connection."),
-          timestamp: new Date(),
-        };
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to get response from API');
+        }
+
+        const data = await response.json();
+        assistantContent = data.response;
+      } else {
+        // Offline mode - simulate local LLM response
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode.`;
       }
-    } else {
-      // Offline mode or no API key
-      const llmName = models.find(m => m.id === selectedModelId)?.name || 'Local LLM';
-      await new Promise(resolve => setTimeout(resolve, 1500)); 
-      assistantMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: `As ${llmName} (Offline Mode), I received: "${content}". This is a mock response.`,
-        timestamp: new Date(),
-      };
+    } catch (error) {
+      console.error('Error generating response:', error);
+      assistantContent = `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`;
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to generate response',
+        variant: "destructive",
+      });
     }
-    
+
+    const assistantMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: assistantContent,
+      timestamp: new Date(),
+    };
+
     let needsTitleGeneration = false;
     let conversationHistoryForTitle = "";
 
+    // Update chat with assistant message
+    // This is a pure function for setChats
     setChats((prevChats) =>
       prevChats.map((chat) => {
         if (chat.id === chatId) {
           const updatedMessages = [...chat.messages, assistantMessage];
+          // Check if title generation is needed
           if (updatedMessages.length === 2 && chat.title === "New Chat") {
-            needsTitleGeneration = true;
+            needsTitleGeneration = true; // Flag to generate title *after* this state update
             conversationHistoryForTitle = updatedMessages
               .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
               .join("\n");
@@ -351,23 +360,26 @@ export default function AipifyLocalPage() {
         return chat;
       })
     );
-    
-    setIsLoadingResponse(false);
 
+    setIsLoadingResponse(false); // Set loading to false after assistant message is added
+
+    // Perform title generation *after* the state update for messages
     if (needsTitleGeneration) {
       await generateTitle(chatId, conversationHistoryForTitle);
     }
   };
 
   const handleModeSwitchChange = (isOnlineChecked: boolean) => {
-    if (isOnlineChecked) { 
+    if (isOnlineChecked) {
       if (apiKey) {
         setMode('online');
       } else {
-        setTempApiKeyInput(''); 
+        setTempApiKeyInput('');
         setShowApiKeyDialog(true);
+        // Switch won't visually change yet if API key is needed;
+        // it reflects the 'mode' state which changes only on successful API key submission.
       }
-    } else { 
+    } else {
       setMode('offline');
     }
   };
@@ -375,12 +387,8 @@ export default function AipifyLocalPage() {
   const handleApiKeyDialogSubmit = () => {
     if (tempApiKeyInput.trim()) {
       setApiKey(tempApiKeyInput.trim());
-      setMode('online');
+      setMode('online'); // Now switch to online mode
       setShowApiKeyDialog(false);
-      toast({
-        title: "API Key Saved",
-        description: "Switched to Online Mode.",
-      });
     } else {
       toast({
         title: "API Key Required",
@@ -392,15 +400,28 @@ export default function AipifyLocalPage() {
 
   const handleApiKeyDialogClose = () => {
     setShowApiKeyDialog(false);
-    setTempApiKeyInput(''); 
-    // If dialog is closed without saving an API key, and user was trying to switch to online,
-    // ensure mode reflects that online isn't active.
-    if (mode !== 'online' && !apiKey) {
-      // This will ensure the switch visually represents the actual mode
-      // if it didn't change to 'online' due to no API key.
-      // No direct state change needed here as the switch is bound to 'mode'
-    }
+    setTempApiKeyInput('');
+    // If user cancels, and mode isn't already 'online' (e.g. they were trying to switch to it)
+    // ensure the mode state reflects this cancellation if the switch depended on the dialog.
+    // The switch state is bound to 'mode', so if 'mode' didn't change to 'online', it stays 'offline'.
   };
+
+  // Update models and selected model when mode changes
+  useEffect(() => {
+    if (mode === 'online') {
+      setModels(GEMINI_MODELS);
+      // Set to latest Gemini model if not already a Gemini model
+      if (!GEMINI_MODELS.find(m => m.id === selectedModelId)) {
+        setSelectedModelId(GEMINI_MODELS[0]?.id);
+      }
+    } else {
+      setModels(LOCAL_MODELS);
+      // Set to first local model if not already a local model
+      if (!LOCAL_MODELS.find(m => m.id === selectedModelId)) {
+        setSelectedModelId(LOCAL_MODELS[0]?.id);
+      }
+    }
+  }, [mode, selectedModelId]);
 
   const activeChat = chats.find((chat) => chat.id === activeChatId);
 
@@ -414,12 +435,11 @@ export default function AipifyLocalPage() {
               Aipify Local
             </h1>
           </div>
-        </SidebarHeader>
-        <LLMSelector
+        </SidebarHeader>        <LLMSelector
           models={models}
           selectedModelId={selectedModelId}
           onSelectModel={handleSelectModel}
-          disabled={isLoadingResponse || isGeneratingTitle || mode === 'online'} 
+          disabled={isLoadingResponse || isGeneratingTitle}
         />
         <SidebarContent>
           <ChatList
@@ -477,10 +497,10 @@ export default function AipifyLocalPage() {
       </SidebarInset>
 
       <Dialog open={showApiKeyDialog} onOpenChange={(openState) => {
-          if (!openState) { 
-            handleApiKeyDialogClose();
-          }
-        }}>
+        if (!openState) { // If dialog is closed by means other than submit/cancel buttons
+          handleApiKeyDialogClose();
+        }
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -523,4 +543,3 @@ export default function AipifyLocalPage() {
     </SidebarProvider>
   );
 }
-
