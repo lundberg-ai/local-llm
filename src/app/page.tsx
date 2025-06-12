@@ -65,7 +65,7 @@ export default function AipifyLocalPage() {
           initialUserTheme = 'dark';
         }
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not access localStorage for theme preference.");
     }
     setTheme(initialUserTheme);
@@ -80,17 +80,16 @@ export default function AipifyLocalPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        try {
+        document.documentElement.classList.add('dark'); try {
           localStorage.setItem('aipify-local-theme', 'dark');
-        } catch (e) {
+        } catch {
           console.warn("Could not save theme preference to localStorage.");
         }
       } else {
         document.documentElement.classList.remove('dark');
         try {
           localStorage.setItem('aipify-local-theme', 'light');
-        } catch (e) {
+        } catch {
           console.warn("Could not save theme preference to localStorage.");
         }
       }
@@ -111,12 +110,12 @@ export default function AipifyLocalPage() {
         setApiKey(storedApiKey);
         setMode('online');
       } else {
-        setMode('offline'); 
-        if (storedApiKey) { 
+        setMode('offline');
+        if (storedApiKey) {
           setApiKey(storedApiKey);
         }
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not access localStorage for mode/API key.");
       setMode('offline'); // Default to offline if localStorage fails
     }
@@ -134,10 +133,9 @@ export default function AipifyLocalPage() {
           // This case might be less common if API key removal UI isn't present
           // but good for robustness.
           setMode('offline');
-        }
-        localStorage.removeItem('aipify-local-api-key');
+        } localStorage.removeItem('aipify-local-api-key');
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not save mode/API key to localStorage.");
     }
   }, [mode, apiKey]);
@@ -167,21 +165,20 @@ export default function AipifyLocalPage() {
       console.error("Failed to parse chats from local storage:", error);
       try {
         localStorage.removeItem("aipify-local-chats"); // Attempt to clear corrupted data
-      } catch (e) {
+      } catch {
         console.warn("Could not remove corrupted chats from localStorage.");
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // CRITICAL: Changed dependency array from [activeChatId] to []
 
   // Save chats to local storage whenever they change
   useEffect(() => {
-    try {
-      // Avoid writing an empty array if localStorage didn't have chats initially
+    try {      // Avoid writing an empty array if localStorage didn't have chats initially
       if (chats.length > 0 || localStorage.getItem("aipify-local-chats")) {
         localStorage.setItem("aipify-local-chats", JSON.stringify(chats));
       }
-    } catch (e) {
+    } catch {
       console.warn("Could not save chats to localStorage.");
     }
   }, [chats]);
@@ -197,12 +194,11 @@ export default function AipifyLocalPage() {
     setChats((prevChats) => [newChat, ...prevChats]);
     setActiveChatId(newChat.id);
   }, [selectedModelId]); // Dependency on selectedModelId ensures new chats get the current model
-
   useEffect(() => {
     let hasStoredChats = false;
     try {
       hasStoredChats = !!localStorage.getItem("aipify-local-chats");
-    } catch (e) {
+    } catch {
       // localStorage not available or accessible
     }
 
@@ -211,7 +207,7 @@ export default function AipifyLocalPage() {
     if (chats.length === 0 && !hasStoredChats) {
       createNewChat();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chats.length, createNewChat]); // createNewChat is a dependency
 
 
@@ -276,7 +272,6 @@ export default function AipifyLocalPage() {
       setIsGeneratingTitle(false);
     }
   };
-
   const handleSendMessage = async (chatId: string, content: string) => {
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -295,16 +290,57 @@ export default function AipifyLocalPage() {
     );
     setIsLoadingResponse(true);
 
-    // Simulate LLM call
-    const llmName = mode === 'online' ? "Gemini (Online)" : (models.find(m => m.id === selectedModelId)?.name || 'Local LLM');
-    
-    // Artificial delay to simulate network/processing
-    await new Promise(resolve => setTimeout(resolve, 1500)); 
+    let assistantContent: string;
+    const llmName = mode === 'online' ? "Gemini" : (models.find(m => m.id === selectedModelId)?.name || 'Local LLM');
+
+    try {
+      if (mode === 'online' && apiKey) {
+        // Get conversation history for context
+        const currentChat = chats.find(chat => chat.id === chatId);
+        const conversationHistory = currentChat?.messages || [];
+
+        // Make API call to our chat endpoint
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: content,
+            conversationHistory: conversationHistory,
+            apiKey: apiKey,
+            modelName: llmName,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to get response from API');
+        }
+
+        const data = await response.json();
+        assistantContent = data.response;
+      } else {
+        // Offline mode - simulate local LLM response
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode.`;
+      }
+    } catch (error) {
+      console.error('Error generating response:', error);
+      assistantContent = `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`;
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to generate response',
+        variant: "destructive",
+      });
+    }
 
     const assistantMessage: Message = {
       id: crypto.randomUUID(),
       role: "assistant",
-      content: `As ${llmName}, I received: "${content}". This is a mock response.`,
+      content: assistantContent,
       timestamp: new Date(),
     };
 
@@ -329,7 +365,7 @@ export default function AipifyLocalPage() {
         return chat;
       })
     );
-    
+
     setIsLoadingResponse(false); // Set loading to false after assistant message is added
 
     // Perform title generation *after* the state update for messages
@@ -339,16 +375,16 @@ export default function AipifyLocalPage() {
   };
 
   const handleModeSwitchChange = (isOnlineChecked: boolean) => {
-    if (isOnlineChecked) { 
+    if (isOnlineChecked) {
       if (apiKey) {
         setMode('online');
       } else {
-        setTempApiKeyInput(''); 
+        setTempApiKeyInput('');
         setShowApiKeyDialog(true);
         // Switch won't visually change yet if API key is needed;
         // it reflects the 'mode' state which changes only on successful API key submission.
       }
-    } else { 
+    } else {
       setMode('offline');
     }
   };
@@ -369,7 +405,7 @@ export default function AipifyLocalPage() {
 
   const handleApiKeyDialogClose = () => {
     setShowApiKeyDialog(false);
-    setTempApiKeyInput(''); 
+    setTempApiKeyInput('');
     // If user cancels, and mode isn't already 'online' (e.g. they were trying to switch to it)
     // ensure the mode state reflects this cancellation if the switch depended on the dialog.
     // The switch state is bound to 'mode', so if 'mode' didn't change to 'online', it stays 'offline'.
@@ -392,7 +428,7 @@ export default function AipifyLocalPage() {
           models={models}
           selectedModelId={selectedModelId}
           onSelectModel={handleSelectModel}
-          disabled={isLoadingResponse || isGeneratingTitle || mode === 'online'} 
+          disabled={isLoadingResponse || isGeneratingTitle || mode === 'online'}
         />
         <SidebarContent>
           <ChatList
@@ -450,10 +486,10 @@ export default function AipifyLocalPage() {
       </SidebarInset>
 
       <Dialog open={showApiKeyDialog} onOpenChange={(openState) => {
-          if (!openState) { // If dialog is closed by means other than submit/cancel buttons
-            handleApiKeyDialogClose();
-          }
-        }}>
+        if (!openState) { // If dialog is closed by means other than submit/cancel buttons
+          handleApiKeyDialogClose();
+        }
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
