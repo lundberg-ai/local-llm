@@ -56,12 +56,12 @@ export function ChatWindow({
       const conversationText = chatSession.messages
         .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
         .join("\n");
-      
+
       const result = await summarizeConversationFlow({ conversationText });
-      
+
       if (result.summary && chatSession) {
-         await onSendMessage(chatSession.id, `Summary of the conversation:\n${result.summary}`);
-         toast({
+        await onSendMessage(chatSession.id, `Summary of the conversation:\n${result.summary}`);
+        toast({
           title: "Conversation Summarized",
           description: "The summary has been added to the chat.",
         });
@@ -89,15 +89,14 @@ export function ChatWindow({
       </div>
     );
   }
-
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b flex justify-between items-center">
+      <div className="p-4 border-b flex justify-between items-center h-20 min-h-[80px] max-h-[80px]">
         <h2 className="text-xl font-semibold truncate font-headline">
           {chatSession.title || "New Chat"}
         </h2>
-        <Button 
-          onClick={handleSummarize} 
+        <Button
+          onClick={handleSummarize}
           disabled={isSummarizing || isLoadingResponse || chatSession.messages.length === 0}
           size="sm"
           variant="outline"
@@ -117,20 +116,19 @@ export function ChatWindow({
           <ChatMessageDisplay key={msg.id} message={msg} />
         ))}
         {isLoadingResponse && (
-           <div className="flex items-start gap-3 my-4 justify-start">
-             <Loader2 className="h-5 w-5 text-accent animate-spin" />
-             <span className="text-sm text-muted-foreground">Assistant is typing...</span>
-           </div>
-        )}
-      </ScrollArea>
+          <div className="flex items-start gap-3 my-4 justify-start">
+            <Loader2 className="h-5 w-5 text-accent animate-spin" />
+            <span className="text-sm text-muted-foreground">Assistant is typing...</span>
+          </div>
+        )}      </ScrollArea>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t h-[74px] min-h-[74px] max-h-[74px] flex items-center">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSend();
           }}
-          className="flex gap-2"
+          className="flex gap-2 w-full"
         >
           <Input
             type="text"

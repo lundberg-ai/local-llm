@@ -25,7 +25,7 @@ export function LLMSelector({
   disabled,
 }: LLMSelectorProps) {
   return (
-    <div className="p-2 space-y-2 border-b border-sidebar-border">
+    <div className="p-2 space-y-2 border-b border-sidebar-border h-20 min-h-[80px] max-h-[80px]">
       <Label htmlFor="llm-select" className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/70">
         <BrainCircuit className="h-4 w-4 text-accent" />
         LLM Model

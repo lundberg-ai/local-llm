@@ -205,9 +205,8 @@ export default function AipifyLocalPage() {
             onCreateChat={createNewChat}
             onDeleteChat={handleDeleteChat}
             disabled={isLoadingResponse || isGeneratingTitle}
-          />
-        </SidebarContent>
-        <SidebarFooter className="p-2 border-t border-sidebar-border">
+          />        </SidebarContent>
+        <SidebarFooter className="p-2 border-t border-sidebar-border h-[74px] min-h-[74px] max-h-[74px] flex items-center">
           <Button variant="ghost" className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/20">
             <Settings2 className="h-4 w-4 text-accent" />
             Settings
