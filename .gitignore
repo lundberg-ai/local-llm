@@ -3,7 +3,3 @@
 
 # Ignore lock files in the root
 /package-lock.json
-
-# Remove Next.js-specific entries
-next-env.d.ts
-next.config.ts
