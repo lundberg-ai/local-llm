@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { Request, Response } from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface ChatMessage {
@@ -6,16 +6,17 @@ interface ChatMessage {
 	content: string;
 }
 
-export async function POST(request: NextRequest) {
+export async function handleChatRoute(req: Request, res: Response) {
+	// console.log('Request body:', req.body); // Log the entire request body
 	try {
-		const { message, conversationHistory, apiKey } = await request.json();
+		const { message, conversationHistory, apiKey } = req.body;
 
 		if (!message) {
-			return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+			return res.status(400).json({ error: 'Message is required' });
 		}
 
 		if (!apiKey) {
-			return NextResponse.json({ error: 'API key is required for online mode' }, { status: 400 });
+			return res.status(400).json({ error: 'API key is required for online mode' });
 		}
 
 		// Use the Google AI SDK directly to make the API call
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 		const response = await result.response;
 		const text = response.text();
 
-		return NextResponse.json({ response: text });
+		return res.json({ response: text });
 	} catch (error: unknown) {
 		console.error('Chat API error:', error);
 
@@ -43,16 +44,16 @@ export async function POST(request: NextRequest) {
 
 		// Handle specific API errors
 		if (errorMessage.includes('API_KEY_INVALID') || errorMessage.includes('Invalid API key')) {
-			return NextResponse.json({ error: 'Invalid API key provided' }, { status: 401 });
+			return res.status(401).json({ error: 'Invalid API key provided' });
 		}
 
 		if (errorMessage.includes('quota')) {
-			return NextResponse.json({ error: 'API quota exceeded' }, { status: 429 });
+			return res.status(429).json({ error: 'API quota exceeded' });
 		}
 
-		return NextResponse.json({
+		return res.status(500).json({
 			error: 'Failed to generate response',
 			details: errorMessage
-		}, { status: 500 });
+		});
 	}
 }

@@ -1,0 +1,9 @@
+# Ignore node_modules in the frontend folder
+/frontend/node_modules
+
+# Ignore lock files in the root
+/package-lock.json
+
+# Remove Next.js-specific entries
+next-env.d.ts
+next.config.ts

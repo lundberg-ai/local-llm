@@ -1,6 +1,3 @@
-
-"use client";
-
 import type { ChatSession } from "../types";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";

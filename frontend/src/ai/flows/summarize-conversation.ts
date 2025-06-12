@@ -3,7 +3,7 @@
 'use server';
 
 import { ai } from '../genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const SummarizeConversationInputSchema = z.object({
   conversationText: z

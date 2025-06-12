@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+/frontend/node_modules
 /node_modules
 /.pnp
 .pnp.*
@@ -12,10 +13,6 @@
 
 # testing
 /coverage
-
-# next.js
-/.next/
-/out/
 
 # production
 /build
@@ -35,7 +32,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 .genkit/*
 .env*
@@ -43,3 +39,8 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# vite
+/vite.config.ts
+/dist/
+/.vite/

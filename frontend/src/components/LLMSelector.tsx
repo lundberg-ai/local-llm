@@ -1,5 +1,3 @@
-"use client";
-
 import type { LLMModel } from "../types";
 import {
   Select,

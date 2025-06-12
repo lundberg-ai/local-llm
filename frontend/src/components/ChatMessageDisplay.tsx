@@ -1,5 +1,3 @@
-"use client";
-
 import type { Message } from "../types";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Bot, User } from "lucide-react";
