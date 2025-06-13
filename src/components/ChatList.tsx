@@ -3,7 +3,6 @@
 
 import type { ChatSession } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquarePlus, MessageSquareText, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,8 +39,7 @@ export function ChatList({
       >          <MessageSquarePlus className="h-4 w-4 text-accent" />
         New Chat
       </Button>
-      </div>
-      <ScrollArea className="flex-grow p-2">
+      </div>      <div className="flex-grow p-2 overflow-y-auto">
         {chats.length === 0 && (
           <p className="text-sm text-sidebar-foreground/70 text-center py-4">
             No chats yet.
@@ -69,8 +67,7 @@ export function ChatList({
                 <div className="flex items-center gap-2 truncate">
                   <MessageSquareText className="h-4 w-4 shrink-0" />
                   <span className="truncate">{chat.title || "New Chat"}</span>
-                </div>
-                <Button
+                </div>                <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 shrink-0 opacity-50 hover:opacity-100 hover:bg-destructive/20 hover:text-destructive"
@@ -87,7 +84,7 @@ export function ChatList({
             </li>
           ))}
         </ul>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
