@@ -123,12 +123,11 @@ export function ChatWindow({
           size="sm"
           variant="outline"
           className="hover:bg-accent hover:text-accent-foreground"
-        >
-          {isSummarizing ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Zap className="mr-2 h-4 w-4" />
-          )}
+        >          {isSummarizing ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Zap className="mr-2 h-4 w-4 text-accent" />
+        )}
           Summarize
         </Button>
       </div>
