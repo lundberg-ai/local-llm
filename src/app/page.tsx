@@ -652,17 +652,17 @@ export default function AipifyLocalPage() {
               >
                 Google AI Studio
               </a>.
-              {(() => {
-                const source = getApiKeySource();
-                if (source === 'localStorage') {
-                  return <div className="mt-2 text-sm text-muted-foreground">Current API key is from your browser storage.</div>;
-                } else if (source === 'environment') {
-                  return <div className="mt-2 text-sm text-muted-foreground">Current API key is from environment variables. Setting a new key here will override it.</div>;
-                } else {
-                  return <div className="mt-2 text-sm text-muted-foreground">No API key is currently available.</div>;
-                }
-              })()}
             </DialogDescription>
+            {(() => {
+              const source = getApiKeySource();
+              if (source === 'localStorage') {
+                return <div className="mt-2 text-sm text-muted-foreground">Current API key is from your browser storage.</div>;
+              } else if (source === 'environment') {
+                return <div className="mt-2 text-sm text-muted-foreground">Current API key is from environment variables. Setting a new key here will override it.</div>;
+              } else {
+                return <div className="mt-2 text-sm text-muted-foreground">No API key is currently available.</div>;
+              }
+            })()}
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
