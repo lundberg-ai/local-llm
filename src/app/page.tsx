@@ -33,6 +33,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound } from "lucide-react";
+import { getApiKey, hasApiKey, getApiKeySource } from '@/lib/api-key';
 
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
@@ -98,33 +99,39 @@ export default function AipifyLocalPage() {
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
-
   useEffect(() => {
     try {
       const storedMode = localStorage.getItem('aipify-local-mode') as 'offline' | 'online' | null;
-      const storedApiKey = localStorage.getItem('aipify-local-api-key');
+      const availableApiKey = getApiKey();
 
-      if (storedMode === 'online' && storedApiKey) {
-        setApiKey(storedApiKey);
+      if (storedMode === 'online' && availableApiKey) {
+        setApiKey(availableApiKey);
         setMode('online');
       } else {
         setMode('offline');
-        if (storedApiKey) {
-          setApiKey(storedApiKey); // Keep stored API key even if starting offline
+        if (availableApiKey) {
+          setApiKey(availableApiKey); // Keep available API key even if starting offline
         }
       }
     } catch {
       console.warn("Could not access localStorage for mode/API key.");
       setMode('offline');
+      // Still try to get API key from environment
+      const envApiKey = getApiKey();
+      if (envApiKey) {
+        setApiKey(envApiKey);
+      }
     }
   }, []);
-
   useEffect(() => {
     try {
       localStorage.setItem('aipify-local-mode', mode);
-      if (apiKey) {
+
+      // Only manage localStorage if the API key is from localStorage (not environment)
+      const apiKeySource = getApiKeySource();
+      if (apiKeySource === 'localStorage' && apiKey) {
         localStorage.setItem('aipify-local-api-key', apiKey);
-      } else {
+      } else if (apiKeySource === 'none') {
         localStorage.removeItem('aipify-local-api-key');
         if (mode === 'online') {
           setMode('offline'); // Revert to offline if API key is removed while online
@@ -135,6 +142,7 @@ export default function AipifyLocalPage() {
           });
         }
       }
+      // If apiKeySource is 'environment', we don't modify localStorage
     } catch {
       console.warn("Could not save mode/API key to localStorage.");
     }
@@ -239,10 +247,11 @@ export default function AipifyLocalPage() {
       );
     }
   };
-
   const generateTitle = async (chatId: string, conversationHistory: string) => {
     if (isGeneratingTitle) return;
     setIsGeneratingTitle(true);
+    const currentApiKey = getApiKey();
+
     try {
       const response = await fetch('/api/generate-title', {
         method: 'POST',
@@ -251,7 +260,7 @@ export default function AipifyLocalPage() {
         },
         body: JSON.stringify({
           conversationHistory,
-          apiKey: mode === 'online' ? apiKey : undefined,
+          apiKey: mode === 'online' ? currentApiKey : undefined,
           modelId: mode === 'online' ? selectedModelId : undefined,
         }),
       });
@@ -297,12 +306,13 @@ export default function AipifyLocalPage() {
           : chat
       );
       return updatedMessagesWithUser;
-    });
-
-    setIsLoadingResponse(true);
+    }); setIsLoadingResponse(true);
     let assistantContent: string;
-    const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM'); try {
-      if (mode === 'online' && apiKey) {
+    const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM');
+    const currentApiKey = getApiKey();
+
+    try {
+      if (mode === 'online' && currentApiKey) {
         // Get conversation history for context
         const currentChat = chats.find(chat => chat.id === chatId);
         const conversationHistory = currentChat?.messages || [];
@@ -312,11 +322,10 @@ export default function AipifyLocalPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+          }, body: JSON.stringify({
             message: content,
             conversationHistory: conversationHistory,
-            apiKey: apiKey,
+            apiKey: currentApiKey,
             modelId: selectedModelId,
             modelName: llmName,
           }),
@@ -329,7 +338,14 @@ export default function AipifyLocalPage() {
 
         const data = await response.json();
         assistantContent = data.response;
-
+      } else if (mode === 'online' && !currentApiKey) {
+        // Online mode selected but no API key available
+        assistantContent = `Online mode is enabled but no API key is available. Please set your Gemini API key in the settings to use online features.`;
+        toast({
+          title: "API Key Required",
+          description: "Please set your Gemini API key in settings to use online mode.",
+          variant: "destructive",
+        });
       } else {
         await new Promise(resolve => setTimeout(resolve, 1500));
         assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode.`;
@@ -377,15 +393,23 @@ export default function AipifyLocalPage() {
       await generateTitle(chatId, conversationHistoryForTitle);
     }
   };
-
   const handleModeSwitchChange = (isAttemptingOnline: boolean) => {
     if (isAttemptingOnline) {
-      if (apiKey) {
+      if (hasApiKey()) {
         setMode('online');
+        // Update the local apiKey state with the current available key
+        const currentApiKey = getApiKey();
+        if (currentApiKey) {
+          setApiKey(currentApiKey);
+        }
       } else {
-        setTempApiKeyInput('');
-        setShowApiKeyDialog(true);
-        // Do not change mode here, dialog submit will handle it. Switch will reflect current mode.
+        // No API key available, switch to online anyway but user can manually set key later
+        setMode('online');
+        toast({
+          title: "No API Key Found",
+          description: "Online mode is enabled, but no API key is available. Set one in settings to use online features.",
+          variant: "default",
+        });
       }
     } else {
       setMode('offline');
@@ -411,34 +435,59 @@ export default function AipifyLocalPage() {
     setShowApiKeyDialog(false);
     setTempApiKeyInput('');
   };
-
   const handleOpenSettingsDialog = () => {
-    setTempApiKeyInput(apiKey || '');
+    // Show the localStorage key, not the effective key (which might be from environment)
+    try {
+      const localStorageKey = localStorage.getItem('aipify-local-api-key');
+      setTempApiKeyInput(localStorageKey || '');
+    } catch {
+      setTempApiKeyInput('');
+    }
     setShowSettingsDialog(true);
   };
-
   const handleSettingsDialogSubmit = () => {
     const newApiKey = tempApiKeyInput.trim();
     if (newApiKey) {
       setApiKey(newApiKey);
+      try {
+        localStorage.setItem('aipify-local-api-key', newApiKey);
+      } catch {
+        console.warn("Could not save API key to localStorage.");
+      }
       toast({
         title: "API Key Saved",
-        description: "Your Gemini API key has been updated.",
+        description: "Your Gemini API key has been updated and will take priority over environment variables.",
       });
     } else {
       setApiKey(null);
-      toast({
-        title: "API Key Cleared",
-        description: "Your Gemini API key has been removed.",
-      });
-      if (mode === 'online') {
-        setMode('offline');
+      try {
+        localStorage.removeItem('aipify-local-api-key');
+      } catch {
+        console.warn("Could not remove API key from localStorage.");
+      }
+
+      // Check if there's still an API key available from environment
+      const envApiKey = getApiKey();
+      if (envApiKey) {
+        setApiKey(envApiKey);
         toast({
-          title: "Switched to Offline Mode",
-          description: "Online mode requires an API key.",
-          variant: "default",
-          className: "mt-2",
+          title: "Local API Key Cleared",
+          description: "Your saved API key has been removed. Using API key from environment variables.",
         });
+      } else {
+        toast({
+          title: "API Key Cleared",
+          description: "Your Gemini API key has been removed.",
+        });
+        if (mode === 'online') {
+          setMode('offline');
+          toast({
+            title: "Switched to Offline Mode",
+            description: "API key was removed. Online mode requires an API key.",
+            variant: "default",
+            className: "mt-2",
+          });
+        }
       }
     }
     setShowSettingsDialog(false);
@@ -537,7 +586,6 @@ export default function AipifyLocalPage() {
           isLoadingResponse={isLoadingResponse}
           mode={mode}
           selectedModelId={selectedModelId}
-          apiKey={apiKey}
         />
       </SidebarInset>
 
@@ -594,8 +642,7 @@ export default function AipifyLocalPage() {
             <DialogTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-accent" />
               Manage Gemini API Key
-            </DialogTitle>
-            <DialogDescription>
+            </DialogTitle>            <DialogDescription>
               Update or remove your Gemini API key. Get one from{" "}
               <a
                 href="https://aistudio.google.com/app/apikey"
@@ -604,7 +651,17 @@ export default function AipifyLocalPage() {
                 className="underline text-primary hover:text-primary/80"
               >
                 Google AI Studio
-              </a>. Leave blank to clear.
+              </a>.
+              {(() => {
+                const source = getApiKeySource();
+                if (source === 'localStorage') {
+                  return <div className="mt-2 text-sm text-muted-foreground">Current API key is from your browser storage.</div>;
+                } else if (source === 'environment') {
+                  return <div className="mt-2 text-sm text-muted-foreground">Current API key is from environment variables. Setting a new key here will override it.</div>;
+                } else {
+                  return <div className="mt-2 text-sm text-muted-foreground">No API key is currently available.</div>;
+                }
+              })()}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

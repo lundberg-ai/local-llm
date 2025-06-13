@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessageDisplay } from "./ChatMessageDisplay";
 import { Loader2, Send, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getApiKey } from "@/lib/api-key";
 
 interface ChatWindowProps {
   chatSession: ChatSession | null;
@@ -16,7 +17,6 @@ interface ChatWindowProps {
   isLoadingResponse: boolean;
   mode: 'offline' | 'online';
   selectedModelId: string | undefined;
-  apiKey: string | null;
 }
 
 export function ChatWindow({
@@ -25,7 +25,6 @@ export function ChatWindow({
   isLoadingResponse,
   mode,
   selectedModelId,
-  apiKey,
 }: ChatWindowProps) {
   const [inputValue, setInputValue] = useState("");
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -59,19 +58,21 @@ export function ChatWindow({
     setIsSummarizing(true);
     try {
       const conversationText = chatSession.messages
-        .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
-        .join("\n"); const response = await fetch('/api/summarize', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            conversationText,
-            mode,
-            apiKey: apiKey || undefined,
-            modelId: selectedModelId,
-          }),
-        });
+        .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`).join("\n");
+
+      const currentApiKey = getApiKey();
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationText,
+          mode,
+          apiKey: currentApiKey || undefined,
+          modelId: selectedModelId,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
