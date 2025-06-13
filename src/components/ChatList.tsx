@@ -32,16 +32,14 @@ export function ChatList({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-2">
-        <Button
-          onClick={onCreateChat}
-          variant="outline"
-          className="w-full justify-start gap-2 border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:ring-sidebar-ring"
-          disabled={disabled}
-        >
-          <MessageSquarePlus className="h-4 w-4 text-accent" />
-          New Chat
-        </Button>
+      <div className="p-2">        <Button
+        onClick={onCreateChat}
+        variant="outline"
+        className="w-full justify-start gap-2 border-sidebar-border hover:bg-accent hover:text-accent-foreground focus:ring-sidebar-ring"
+        disabled={disabled}
+      >          <MessageSquarePlus className="h-4 w-4 text-accent" />
+        New Chat
+      </Button>
       </div>
       <ScrollArea className="flex-grow p-2">
         {chats.length === 0 && (

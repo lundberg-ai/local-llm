@@ -543,15 +543,13 @@ export default function AipifyLocalPage() {
             disabled={isLoadingResponse || isGeneratingTitle}
           />
         </SidebarContent>
-        <SidebarFooter className="p-2 border-t border-sidebar-border h-[74px] min-h-[74px] max-h-[74px] flex items-center">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/20"
-            onClick={handleOpenSettingsDialog}
-          >
-            <Settings2 className="h-4 w-4 text-accent" />
-            Settings
-          </Button>
+        <SidebarFooter className="p-2 border-t border-sidebar-border h-[74px] min-h-[74px] max-h-[74px] flex items-center">          <Button
+          variant="ghost"
+          className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-accent"
+          onClick={handleOpenSettingsDialog}
+        >            <Settings2 className="h-4 w-4 text-accent" />
+          Settings
+        </Button>
         </SidebarFooter>
       </Sidebar>
 
@@ -636,49 +634,114 @@ export default function AipifyLocalPage() {
       {/* Settings Dialog to change/clear API Key */}
       <Dialog open={showSettingsDialog} onOpenChange={(openState) => {
         if (!openState) handleSettingsDialogClose();
-      }}>
-        <DialogContent className="sm:max-w-[425px]">
+      }}>        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-accent" />
-              Manage Gemini API Key
-            </DialogTitle>            <DialogDescription>
-              Update or remove your Gemini API key. Get one from{" "}
-              <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-primary hover:text-primary/80"
-              >
-                Google AI Studio
-              </a>.
+              Settings
+            </DialogTitle>
+            <DialogDescription>
+              Manage your Gemini AI API key for enhanced online chat features.
             </DialogDescription>
-            {(() => {
-              const source = getApiKeySource();
-              if (source === 'localStorage') {
-                return <div className="mt-2 text-sm text-muted-foreground">Current API key is from your browser storage.</div>;
-              } else if (source === 'environment') {
-                return <div className="mt-2 text-sm text-muted-foreground">Current API key is from environment variables. Setting a new key here will override it.</div>;
-              } else {
-                return <div className="mt-2 text-sm text-muted-foreground">No API key is currently available.</div>;
-              }
-            })()}
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="apiKeyInputSettings" className="text-right">
-                API Key
-              </Label>
-              <Input
-                id="apiKeyInputSettings"
-                value={tempApiKeyInput}
-                onChange={(e) => setTempApiKeyInput(e.target.value)}
-                className="col-span-3"
-                placeholder="Enter new API key or leave blank to clear"
-                type="password"
-              />
+
+          <div className="grid gap-6 py-4">
+            {/* Current Status */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Current Status</h4>
+              {(() => {
+                const source = getApiKeySource();
+                const currentKey = getApiKey();
+
+                if (source === 'localStorage') {
+                  return (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        Using your personal API key
+                      </span>
+                    </div>
+                  );
+                } else if (source === 'environment') {
+                  return (
+                    <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">
+                        Using shared API key (limited capacity)
+                      </span>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <span className="text-sm text-red-700 dark:text-red-300 font-medium">
+                        No API key available
+                      </span>
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+
+            {/* API Key Input */}
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="apiKeyInputSettings" className="text-sm font-medium">
+                  Google Gemini API Key
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Get your free API key from Google AI Studio:
+                </p>
+              </div>
+
+              {/* Instructions */}
+              <div className="text-xs text-muted-foreground space-y-1 bg-muted/30 p-3 rounded-lg">
+                <p>1. Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 underline">Google AI Studio</a></p>
+                <p>2. Sign in with your Google account</p>
+                <p>3. Click "Create API Key"</p>
+                <p>4. Copy the key and paste it below</p>
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  id="apiKeyInputSettings"
+                  value={tempApiKeyInput}
+                  onChange={(e) => setTempApiKeyInput(e.target.value)}
+                  className="flex-1"
+                  placeholder={getApiKeySource() === 'localStorage' ? "Your current API key" : "AIzaSy... (your API key)"}
+                  type="password"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('https://aistudio.google.com/app/apikey', '_blank')}
+                  className="shrink-0"
+                >
+                  Open Studio
+                </Button>
+              </div>
+            </div>
+
+            {/* Security & Usage Info */}
+            <div className="space-y-2">
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p className="flex items-center gap-2">
+                  <span className="text-green-600">•</span>
+                  Your API key is stored only locally in your browser
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="text-green-600">•</span>
+                  The key is never shared with servers or other users
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="text-blue-600">•</span>
+                  Gemini 1.5 Flash is free up to 15 requests per minute
+                </p>
+              </div>
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={handleSettingsDialogClose}>Cancel</Button>
             <Button onClick={handleSettingsDialogSubmit}>Save Changes</Button>
