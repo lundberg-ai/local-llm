@@ -6,7 +6,7 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
-const UnifiedSummarizeInputSchema = z.object({
+export const UnifiedSummarizeInputSchema = z.object({
 	conversationText: z
 		.string()
 		.describe('The complete text of the chat conversation to summarize.'),
@@ -17,7 +17,7 @@ const UnifiedSummarizeInputSchema = z.object({
 
 export type UnifiedSummarizeInput = z.infer<typeof UnifiedSummarizeInputSchema>;
 
-const UnifiedSummarizeOutputSchema = z.object({
+export const UnifiedSummarizeOutputSchema = z.object({
 	summary: z.string().describe('A concise summary of the chat conversation.'),
 });
 

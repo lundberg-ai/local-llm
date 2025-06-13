@@ -4,7 +4,7 @@
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import type { ChatSession, Message, LLMModel } from "@/types";
-import { AVAILABLE_MODELS, LOCAL_MODELS, GEMINI_MODELS } from "@/config/models";
+import { LOCAL_MODELS, GEMINI_MODELS } from "@/config/models";
 import { ChatList } from "@/components/ChatList";
 import { ChatWindow } from "@/components/ChatWindow";
 import { LLMSelector } from "@/components/LLMSelector";
@@ -646,12 +646,10 @@ export default function AipifyLocalPage() {
           </DialogHeader>
 
           <div className="grid gap-6 py-4">
-            {/* Current Status */}
-            <div className="space-y-2">
+            {/* Current Status */}            <div className="space-y-2">
               <h4 className="text-sm font-medium">Current Status</h4>
               {(() => {
                 const source = getApiKeySource();
-                const currentKey = getApiKey();
 
                 if (source === 'localStorage') {
                   return (
@@ -693,25 +691,22 @@ export default function AipifyLocalPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Get your free API key from Google AI Studio:
                 </p>
-              </div>
-
-              {/* Instructions */}
+              </div>              {/* Instructions */}
               <div className="text-xs text-muted-foreground space-y-1 bg-muted/30 p-3 rounded-lg">
                 <p>1. Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 underline">Google AI Studio</a></p>
                 <p>2. Sign in with your Google account</p>
-                <p>3. Click "Create API Key"</p>
+                <p>3. Click &ldquo;Create API Key&rdquo;</p>
                 <p>4. Copy the key and paste it below</p>
               </div>
 
-              <div className="flex gap-2">
-                <Input
-                  id="apiKeyInputSettings"
-                  value={tempApiKeyInput}
-                  onChange={(e) => setTempApiKeyInput(e.target.value)}
-                  className="flex-1"
-                  placeholder={getApiKeySource() === 'localStorage' ? "Your current API key" : "AIzaSy... (your API key)"}
-                  type="password"
-                />
+              <div className="flex gap-2">                <Input
+                id="apiKeyInputSettings"
+                value={tempApiKeyInput}
+                onChange={(e) => setTempApiKeyInput(e.target.value)}
+                className="flex-1"
+                placeholder={getApiKeySource() === 'localStorage' ? 'Your current API key' : 'AIzaSy... (your API key)'}
+                type="password"
+              />
                 <Button
                   variant="outline"
                   size="sm"

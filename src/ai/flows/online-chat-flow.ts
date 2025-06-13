@@ -13,7 +13,7 @@ const HistoryItemSchema = z.object({
 });
 export type HistoryItem = z.infer<typeof HistoryItemSchema>;
 
-const OnlineChatInputSchema = z.object({
+export const OnlineChatInputSchema = z.object({
   userMessage: z.string().describe("The user's current message."),
   history: z.array(HistoryItemSchema).describe('The conversation history, where roles are "user" or "model".'),
   apiKey: z.string().describe('The Gemini API key.'),
@@ -21,7 +21,7 @@ const OnlineChatInputSchema = z.object({
 });
 export type OnlineChatInput = z.infer<typeof OnlineChatInputSchema>;
 
-const OnlineChatOutputSchema = z.object({
+export const OnlineChatOutputSchema = z.object({
   assistantResponse: z.string().describe('The response from the Gemini model.'),
 });
 export type OnlineChatOutput = z.infer<typeof OnlineChatOutputSchema>;
