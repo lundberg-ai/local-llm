@@ -22,14 +22,14 @@ export const LOCAL_MODELS: LLMModel[] = [
 // Online Gemini models
 export const GEMINI_MODELS: LLMModel[] = [
   {
-    id: 'gemini-2.0-flash-exp',
-    name: 'Gemini 2.0 Flash (Latest)',
-    description: 'Google\'s latest experimental model with enhanced performance and capabilities.',
-  },
-  {
     id: 'gemini-1.5-flash',
     name: 'Gemini 1.5 Flash',
     description: 'Google\'s fast and efficient model with multimodal capabilities.',
+  },
+  {
+    id: 'gemini-2.0-flash-exp',
+    name: 'Gemini 2.0 Flash (Latest)',
+    description: 'Google\'s latest experimental model with enhanced performance and capabilities.',
   },
 ];
 
