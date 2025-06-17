@@ -33,6 +33,12 @@ import { ToastAction } from "@/components/ui/toast";
 import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound, Globe } from "lucide-react";
 import { getApiKey, hasApiKey, getApiKeySource } from '@/lib/api-key';
 
+// Build-time environment check - this will appear in Vercel build logs
+console.log('🏗️  BUILD-TIME CHECK: Environment variables during build:');
+console.log('🏗️  NEXT_PUBLIC_IS_VERCEL:', process.env.NEXT_PUBLIC_IS_VERCEL);
+console.log('🏗️  NODE_ENV:', process.env.NODE_ENV);
+console.log('🏗️  Is Vercel deployment:', process.env.NEXT_PUBLIC_IS_VERCEL === 'true');
+
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -110,9 +116,13 @@ export default function AipifyLocalPage() {
       }
     }
   }, [mode, selectedModelId]);
-
   // Initialize mode and API key from storage on first load
   useEffect(() => {
+    // Runtime environment check - this will appear in browser console
+    console.log('🚀 RUNTIME CHECK: Environment variables in browser:');
+    console.log('🚀 NEXT_PUBLIC_IS_VERCEL:', process.env.NEXT_PUBLIC_IS_VERCEL);
+    console.log('🚀 Is Vercel deployment:', process.env.NEXT_PUBLIC_IS_VERCEL === 'true');
+
     try {
       const storedMode = localStorage.getItem('aipify-local-mode') as 'offline' | 'online' | null;
       const availableApiKey = getApiKey();
@@ -351,12 +361,10 @@ export default function AipifyLocalPage() {
           variant: "destructive",
         });
       } else {        // Offline mode - attempt to call local backend or show mock response
-        const isDeployedToVercel = !!process.env.VERCEL ||
-          !!process.env.CI;
+        const isDeployedToVercel = process.env.NEXT_PUBLIC_IS_VERCEL === 'true';
 
         console.log('Environment detection:', {
-          VERCEL: process.env.VERCEL,
-          CI: process.env.CI,
+          NEXT_PUBLIC_IS_VERCEL: process.env.NEXT_PUBLIC_IS_VERCEL,
           isDeployedToVercel
         });
 
@@ -394,9 +402,10 @@ export default function AipifyLocalPage() {
       }
     } catch (error) {
       console.error('Error generating response:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';      // Check if we're on Vercel and this is a backend connection error
-      const isDeployedToVercel = !!process.env.VERCEL ||
-        !!process.env.CI;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Check if we're on Vercel using our build-time flag
+      const isDeployedToVercel = process.env.NEXT_PUBLIC_IS_VERCEL === 'true';
 
       if (isDeployedToVercel) {
         // On Vercel, always show a friendly mock response instead of an error for offline mode

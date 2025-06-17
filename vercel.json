@@ -12,5 +12,8 @@
 			"vite": false,
 			"backend": false
 		}
+	},
+	"env": {
+		"NEXT_PUBLIC_IS_VERCEL": "true"
 	}
 }
