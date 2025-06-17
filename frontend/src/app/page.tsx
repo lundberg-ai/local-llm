@@ -30,7 +30,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ToastAction } from "@/components/ui/toast";
-import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound, Globe, Cpu } from "lucide-react";
+import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound, Globe } from "lucide-react";
 import { getApiKey, hasApiKey, getApiKeySource } from '@/lib/api-key';
 
 export default function AipifyLocalPage() {

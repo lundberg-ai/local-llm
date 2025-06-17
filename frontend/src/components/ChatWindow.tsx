@@ -11,7 +11,6 @@ import { ChatMessageDisplay } from "./ChatMessageDisplay";
 import { Loader2, Send, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getApiKey } from "@/lib/api-key";
-import { MODES } from "@/config/models";
 
 interface ChatWindowProps {
   chatSession: ChatSession | null;
@@ -56,13 +55,10 @@ export function ChatWindow({
         variant: "destructive",
       });
       return;
-    }
-    setIsSummarizing(true);
+    } setIsSummarizing(true);
     try {
-      const conversationText = chatSession.messages
-        .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`).join("\n");
-
-      const currentApiKey = getApiKey(); const response = await fetch('/api/summarize', {
+      const currentApiKey = getApiKey();
+      const response = await fetch('/api/summarize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

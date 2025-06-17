@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { BrainCircuit, Cpu, Globe } from "lucide-react";
+import { Cpu, Globe } from "lucide-react";
 import { MODES } from "@/config/models";
 
 interface LLMSelectorProps {
