@@ -33,12 +33,6 @@ import { ToastAction } from "@/components/ui/toast";
 import { PanelLeft, Settings2, Sun, Moon, Wifi, WifiOff, KeyRound, Globe } from "lucide-react";
 import { getApiKey, hasApiKey, getApiKeySource } from '@/lib/api-key';
 
-// Build-time environment check - this will appear in Vercel build logs
-console.log('🏗️  BUILD-TIME CHECK: Environment variables during build:');
-console.log('🏗️  NEXT_PUBLIC_IS_VERCEL:', process.env.NEXT_PUBLIC_IS_VERCEL);
-console.log('🏗️  NODE_ENV:', process.env.NODE_ENV);
-console.log('🏗️  Is Vercel deployment:', process.env.NEXT_PUBLIC_IS_VERCEL === 'true');
-
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -115,14 +109,8 @@ export default function AipifyLocalPage() {
         setSelectedModelId(LOCAL_MODELS[0]?.id);
       }
     }
-  }, [mode, selectedModelId]);
-  // Initialize mode and API key from storage on first load
+  }, [mode, selectedModelId]);  // Initialize mode and API key from storage on first load
   useEffect(() => {
-    // Runtime environment check - this will appear in browser console
-    console.log('🚀 RUNTIME CHECK: Environment variables in browser:');
-    console.log('🚀 NEXT_PUBLIC_IS_VERCEL:', process.env.NEXT_PUBLIC_IS_VERCEL);
-    console.log('🚀 Is Vercel deployment:', process.env.NEXT_PUBLIC_IS_VERCEL === 'true');
-
     try {
       const storedMode = localStorage.getItem('aipify-local-mode') as 'offline' | 'online' | null;
       const availableApiKey = getApiKey();
@@ -362,11 +350,6 @@ export default function AipifyLocalPage() {
         });
       } else {        // Offline mode - attempt to call local backend or show mock response
         const isDeployedToVercel = process.env.NEXT_PUBLIC_IS_VERCEL === 'true';
-
-        console.log('Environment detection:', {
-          NEXT_PUBLIC_IS_VERCEL: process.env.NEXT_PUBLIC_IS_VERCEL,
-          isDeployedToVercel
-        });
 
         if (isDeployedToVercel) {
           // We're on Vercel - show mock response since backend isn't available

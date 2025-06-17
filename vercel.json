@@ -8,9 +8,7 @@
 		"deploymentEnabled": {
 			"main": true,
 			"dev": false,
-			"firebase": false,
-			"vite": false,
-			"backend": false
+			"firebase": false
 		}
 	}
 }
