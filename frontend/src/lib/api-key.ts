@@ -15,7 +15,7 @@ export function getApiKey(): string | null {
 			return localStorageKey.trim();
 		}
 	} catch {
-		console.warn("Could not access localStorage for API key.");
+		// Silently continue to environment fallback
 	}
 	// Fallback to environment variable
 	const envKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;

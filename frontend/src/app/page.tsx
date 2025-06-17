@@ -35,7 +35,8 @@ import { getApiKey, hasApiKey, getApiKeySource } from '@/lib/api-key';
 
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null); const [mode, setMode] = useState<'offline' | 'online'>('online');
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [mode, setMode] = useState<'offline' | 'online'>('online');
   const [models, setModels] = useState<LLMModel[]>(GEMINI_MODELS);
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
     GEMINI_MODELS[0]?.id // Default to first online model
@@ -350,41 +351,61 @@ export default function AipifyLocalPage() {
           variant: "destructive",
         });
       } else {
-        // Offline mode - call local backend
-        const currentChat = chats.find(chat => chat.id === chatId);
-        const conversationHistory = currentChat?.messages || [];
+        // Offline mode - attempt to call local backend or show mock response
+        const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel';
 
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: content,
-            conversationHistory: conversationHistory,
-            modelId: selectedModelId,
-            modelName: llmName,
-            mode: 'offline',
-          }),
-        });
+        if (isDeployedToVercel) {
+          // We're on Vercel - show mock response since backend isn't available
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode - the local backend is not available in this deployment.`;
+        } else {
+          // We're in local development - try to call the real backend
+          const currentChat = chats.find(chat => chat.id === chatId);
+          const conversationHistory = currentChat?.messages || [];
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to get response from local backend');
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: content,
+              conversationHistory: conversationHistory,
+              modelId: selectedModelId,
+              modelName: llmName,
+              mode: 'offline',
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to get response from local backend');
+          }
+
+          const data = await response.json();
+          assistantContent = data.response;
         }
-
-        const data = await response.json();
-        assistantContent = data.response;
       }
     } catch (error) {
       console.error('Error generating response:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      assistantContent = `Sorry, I encountered an error: ${errorMessage}. Please try again.`;
-      toast({
-        title: "Error Generating Response",
-        description: errorMessage,
-        variant: "destructive",
-      });
+
+      // Check if we're on Vercel and this is a backend connection error
+      const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel';
+
+      if (isDeployedToVercel && errorMessage.includes('backend')) {
+        // On Vercel, show a friendly mock response instead of an error
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode - the local backend is not available in this deployment.`;
+      } else {
+        // In local development, show the actual error
+        assistantContent = `Sorry, I encountered an error: ${errorMessage}. Please try again.`;
+        toast({
+          title: "Error Generating Response",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
 
     const assistantMessage: Message = {
