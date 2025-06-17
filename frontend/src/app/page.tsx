@@ -351,8 +351,14 @@ export default function AipifyLocalPage() {
           variant: "destructive",
         });
       } else {        // Offline mode - attempt to call local backend or show mock response
-        const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel' ||
-          process.env.VERCEL === '1';
+        const isDeployedToVercel = !!process.env.VERCEL ||
+          !!process.env.CI;
+
+        console.log('Environment detection:', {
+          VERCEL: process.env.VERCEL,
+          CI: process.env.CI,
+          isDeployedToVercel
+        });
 
         if (isDeployedToVercel) {
           // We're on Vercel - show mock response since backend isn't available
@@ -389,8 +395,8 @@ export default function AipifyLocalPage() {
     } catch (error) {
       console.error('Error generating response:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';      // Check if we're on Vercel and this is a backend connection error
-      const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel' ||
-        process.env.VERCEL === '1';
+      const isDeployedToVercel = !!process.env.VERCEL ||
+        !!process.env.CI;
 
       if (isDeployedToVercel) {
         // On Vercel, always show a friendly mock response instead of an error for offline mode

@@ -12,9 +12,5 @@
 			"vite": false,
 			"backend": false
 		}
-	},
-	"env": {
-		"NEXT_PUBLIC_APP_MODE": "online",
-		"NEXT_PUBLIC_DEPLOYMENT_TARGET": "vercel"
 	}
 }
