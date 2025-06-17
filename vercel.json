@@ -16,10 +16,5 @@
 	"env": {
 		"NEXT_PUBLIC_APP_MODE": "online",
 		"NEXT_PUBLIC_DEPLOYMENT_TARGET": "vercel"
-	},
-	"functions": {
-		"frontend/src/app/api/**": {
-			"runtime": "nodejs18.x"
-		}
 	}
 }
