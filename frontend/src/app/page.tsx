@@ -350,9 +350,9 @@ export default function AipifyLocalPage() {
           description: "Please set your Gemini API key in settings to use online mode.",
           variant: "destructive",
         });
-      } else {
-        // Offline mode - attempt to call local backend or show mock response
-        const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel';
+      } else {        // Offline mode - attempt to call local backend or show mock response
+        const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel' ||
+          process.env.VERCEL === '1';
 
         if (isDeployedToVercel) {
           // We're on Vercel - show mock response since backend isn't available
@@ -388,13 +388,12 @@ export default function AipifyLocalPage() {
       }
     } catch (error) {
       console.error('Error generating response:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';      // Check if we're on Vercel and this is a backend connection error
+      const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel' ||
+        process.env.VERCEL === '1';
 
-      // Check if we're on Vercel and this is a backend connection error
-      const isDeployedToVercel = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === 'vercel';
-
-      if (isDeployedToVercel && errorMessage.includes('backend')) {
-        // On Vercel, show a friendly mock response instead of an error
+      if (isDeployedToVercel) {
+        // On Vercel, always show a friendly mock response instead of an error for offline mode
         await new Promise(resolve => setTimeout(resolve, 1000));
         assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode - the local backend is not available in this deployment.`;
       } else {
