@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 				// Fallback error message for local mode
 				if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('fetch failed')) {
 					return NextResponse.json({
-						error: 'Local backend server is not running. Please start the backend server first.'
+						error: 'Local backend server is not running. Please start the backend server first'
 					}, { status: 503 });
 				}
 

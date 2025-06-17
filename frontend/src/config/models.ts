@@ -4,17 +4,17 @@ import type { LLMModel } from '@/types';
 export const LOCAL_MODELS: LLMModel[] = [
   {
     id: 'magistral-small-2506',
-    name: 'Magistral Small 2506',
+    name: 'Magistral Small 2506 (Default)',
     description: 'Mid-tier instruction-tuned model by Mistral AI (~14GB).',
   },
   {
     id: 'qwen3-embedding-4b',
-    name: 'Qwen3 Embedding 4B',
+    name: 'Qwen3 Embedding 4B (Light)',
     description: 'Lightweight model optimized for laptops (~2.3GB).',
   },
   {
     id: 'gemma-3-1b-it',
-    name: 'Gemma 3 1B IT',
+    name: 'Gemma 3 1B IT (Ultralight, english only)',
     description: 'Ultra-light model for mobile devices, English only (~700MB).',
   },
 ];

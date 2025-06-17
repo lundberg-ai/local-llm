@@ -1,239 +1,450 @@
-# Aipify Local - Local & Online LLM Chat Interface
+# Aipify Local - Dual-Mode LLM Chat Interface
 
-A Next.js application for chatting with both local and online LLMs, featuring a local backend with llama.cpp and Gemini integration.
+A modern chat interface that works both online (with Gemini API) and offline (with local LLMs via llama.cpp). Built with Next.js and Node.js for a seamless experience across all deployment scenarios.
 
 ## 🌟 Features
 
-- **🔄 Dual Mode Operation**: Switch seamlessly between local and online modes
-- **🏠 Local LLM Support**: Run local models using llama.cpp with JavaScript bindings
-  - Mistral Magistral Small 2506 (mid-tier, ~14GB)
-  - Qwen3 Embedding 4B (lightweight for laptops, ~2.3GB)
-  - Gemma 3 1B IT (ultra-light for mobile, English only, ~700MB)
-- **☁️ Online Mode**: Integrate with Google's Gemini models
-- **💬 Multiple Chats**: Manage multiple concurrent chat sessions
-- **🤖 AI Summarization**: Summarize conversations using local or online AI
-- **📝 Automatic Title Generation**: Generate titles for conversations
-- **🔑 Flexible API Key Management**: Support for both localStorage and environment variable API keys
-- **🎨 Modern UI**: Beautiful and responsive interface with dark/light theme support
+### 🔄 **Dual Mode Operation**
+- **🌐 Online Mode**: Google Gemini API integration (gemini-1.5-flash, gemini-2.0-flash-exp)
+- **🏠 Offline Mode**: Local LLM inference using llama.cpp with JavaScript bindings
+
+### 🤖 **Supported Local Models**
+- **Magistral Small 2506** (~14GB) - Mid-tier model for best quality/performance balance
+- **Qwen3 Embedding 4B** (~2.3GB) - Lightweight model optimized for laptops
+- **Gemma 3 1B IT** (~700MB) - Ultra-light model for mobile devices (English only)
+
+### 💬 **Chat Features**
+- Multiple concurrent chat sessions
+- Real-time conversation management
+- AI-powered conversation summarization
+- Automatic title generation for chats
+- Seamless mode switching between online/offline
+
+### 🎨 **Modern UI Design**
+- **Primary Color**: Vibrant teal (#008080) - Aipify brand essence
+- **Background**: Dark slate gray (#2F4F4F) - Sleek modern dark design
+- **Accent**: Electric blue (#7DF9FF) - Interactive elements and highlights
+- **Typography**: Inter font for clean readability, Source Code Pro for code
+- **Icons**: Minimalist design in electric blue accent color
+- **Interface**: Tabbed design for optimal multi-chat management
 
 ## 📁 Project Structure
 
 ```
-├── src/                    # Frontend (Next.js)
-│   ├── app/
-│   ├── components/
-│   └── config/
-├── backend/                # Backend (Node.js + llama.cpp)
+local-llm/
+├── 📁 frontend/              # Next.js Application
 │   ├── src/
-│   ├── models/            # Downloaded LLM models
-│   └── package.json
-├── scripts/               # Startup scripts
-│   ├── start.ps1         # PowerShell script
-│   ├── start.sh          # Bash script
-│   └── start.bat         # Windows batch script
-└── package.json          # Frontend dependencies
+│   │   ├── app/
+│   │   │   ├── api/         # API routes (dual-mode support)
+│   │   │   │   ├── chat/
+│   │   │   │   ├── generate-title/
+│   │   │   │   └── summarize/
+│   │   │   ├── globals.css
+│   │   │   ├── layout.tsx
+│   │   │   └── page.tsx
+│   │   ├── components/
+│   │   │   ├── ModeSelector.tsx    # Online/offline toggle
+│   │   │   ├── LLMSelector.tsx     # Model selection
+│   │   │   ├── ChatWindow.tsx      # Main chat interface
+│   │   │   ├── ChatList.tsx        # Session management
+│   │   │   └── ...
+│   │   ├── config/
+│   │   │   └── models.ts          # Model configurations
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   └── types/
+│   ├── package.json
+│   ├── next.config.ts
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
+│
+├── 📁 backend/               # Local LLM Server
+│   ├── src/
+│   │   ├── server.js        # Express server with LLM endpoints
+│   │   └── setup-models.js  # Model download utility
+│   ├── llama.cpp/           # llama.cpp build directory
+│   ├── models/              # Downloaded .gguf model files
+│   ├── package.json
+│   └── .env
+│
+├── start-backend.sh         # Backend startup script (Unix)
+├── start-backend.ps1        # Backend startup script (Windows)
+├── start-frontend.sh        # Frontend startup script (Unix)
+├── start-frontend.ps1       # Frontend startup script (Windows)
+├── .gitignore              # Unified ignore file
+├── .vercelignore           # Vercel deployment config
+└── README.md               # This file
 ```
 
 ## 🚀 Quick Start
 
-### Option 1: Full Stack (Recommended)
+### **Prerequisites**
+- Node.js 18.0.0+ (20.0.0+ recommended)
+- 4GB+ RAM (16GB+ for Magistral model)
+- 2GB+ free storage (20GB+ for all models)
 
-Run both frontend and backend together:
+### **Option 1: Frontend Only (Online Mode)**
+
+Perfect for cloud deployment or if you only need Gemini API functionality:
+
+```bash
+# Navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Set up environment (optional)
+echo "NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here" > .env.local
+
+# Start development server
+npm run dev
+```
+
+Access at: `http://localhost:9002`
+
+### **Option 2: Backend Only (Local LLM Server)**
+
+For local inference server:
+
+```bash
+# Install backend dependencies
+cd backend
+npm install
+
+# Download models (choose which ones you need)
+npm run setup-models -- --yes
+
+# Start server
+npm run dev
+```
+
+Backend API available at: `http://localhost:3001`
+
+### **Option 3: Full Stack (Recommended)**
+
+For complete dual-mode functionality:
 
 **Windows (PowerShell):**
 ```powershell
-npm run dev:full
+# Start backend
+.\start-backend.ps1
+
+# In another terminal, start frontend
+.\start-frontend.ps1
 ```
 
-**Windows (Batch):**
-```cmd
-.\scripts\start.bat
-```
-
-**Linux/macOS:**
+**Linux/macOS/WSL:**
 ```bash
-./scripts/start.sh
-```
+# Start backend
+./start-backend.sh
 
-### Option 2: Separate Servers
-
-**Frontend only (online mode):**
-```bash
-npm install
-npm run dev
-```
-
-**Backend setup:**
-```bash
-npm run setup-backend
-cd backend
-npm run setup-models -- --yes  # Downloads ~5GB of models
-npm run dev
-```
-
-**Frontend with backend (offline mode):**
-```bash
-npm run dev:frontend
+# In another terminal, start frontend  
+./start-frontend.sh
 ```
 
 ## ⚙️ Configuration
 
-### Environment Variables
+### **Environment Variables**
 
-**Frontend (.env.local):**
+**Frontend** (`.env.local` in `frontend/` directory):
 ```env
-# Optional: for online mode
+# For online mode
 NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here
 
-# Optional: custom backend URL (defaults to http://localhost:3001)
+# Custom backend URL (optional)
 BACKEND_URL=http://localhost:3001
 ```
 
-**Backend (.env):**
+**Backend** (`.env` in `backend/` directory):
 ```env
+# Server configuration
 BACKEND_PORT=3001
 ENABLE_GPU=true
 LOG_LEVEL=info
+
+# Model settings
+MAX_CONTEXT_SIZE=8192
+DEFAULT_TEMPERATURE=0.7
+DEFAULT_TOP_P=0.9
+MAX_TOKENS=1024
 ```
 
-### API Key Setup
+### **Model Selection Guide**
 
-For online mode with Gemini:
+Choose based on your hardware and requirements:
 
-1. **Environment Variable** (Recommended): Add to `.env.local`:
-   ```env
-   NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here
-   ```
-
-2. **In-App Settings**: Use the settings dialog to set your API key manually
-
-## 📖 Usage
-
-### Switching Modes
-
-- **Offline Mode**: Uses local LLM models via the backend server
-- **Online Mode**: Uses Google Gemini API (requires API key)
-
-Use the mode selector in the sidebar to switch between modes.
-
-### Local Models
-
-The backend supports these models:
-- **Magistral Small 2506**: Mid-tier chat model (~14GB) - Best balance of quality and performance
-- **Qwen3 Embedding 4B**: Lightweight model (~2.3GB) - Optimized for laptops with limited resources
-- **Gemma 3 1B IT**: Ultra-light model (~700MB) - Designed for mobile devices, English only
-
-Models are automatically downloaded when you run the setup script.
-
-### Chat Features
-
-- Create multiple chat sessions
-- Switch between different models
-- Summarize conversations
-- Auto-generate chat titles
-- Export/import chat history (coming soon)
-
-## 🛠️ Development
-
-### Frontend Development
-```bash
-npm run dev:frontend
-npm run build
-npm run lint
-npm run typecheck
-```
-
-### Backend Development
-```bash
-cd backend
-npm run dev
-npm run start
-```
-
-### Available Scripts
-
-- `npm run dev:full` - Start both frontend and backend
-- `npm run dev:frontend` - Start frontend only
-- `npm run dev:backend` - Start backend only
-- `npm run setup-backend` - Install backend dependencies
-- `npm run setup-models` - Download LLM models
+| Model | Size | RAM Required | Use Case | Languages |
+|-------|------|--------------|----------|-----------|
+| **Gemma 3 1B IT** | ~700MB | 4GB+ | Mobile devices, quick responses | English only |
+| **Qwen3 Embedding 4B** | ~2.3GB | 8GB+ | Laptops, balanced performance | Multilingual |
+| **Magistral Small 2506** | ~14GB | 16GB+ | Workstations, best quality | Multilingual |
 
 ## 🚚 Deployment
 
-### Vercel (Online Mode Only)
+### **Vercel (Online Mode Only)**
 
-The project is configured for Vercel deployment with `.vercelignore` that excludes backend files:
+Deploy frontend to Vercel for cloud access:
 
-```bash
-vercel deploy
+1. Push your code to GitHub
+2. Connect repository to Vercel
+3. Set environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_GEMINI_API_KEY=your_api_key`
+4. Deploy automatically
+
+The `.vercelignore` file ensures only frontend code is deployed.
+
+### **Self-Hosted (Full Stack)**
+
+For complete offline capability:
+
+1. **Prepare Server**: Ensure Node.js 18+ and sufficient resources
+2. **Clone Repository**: `git clone <your-repo>`
+3. **Setup Backend**: `cd backend && npm install && npm run setup-models -- --yes`
+4. **Setup Frontend**: `cd frontend && npm install`
+5. **Configure**: Set up environment variables
+6. **Deploy**: Use PM2, Docker, or systemd for production
+7. **Reverse Proxy**: Configure nginx/Apache for domain access
+
+### **Docker Deployment** (Optional)
+
+Create Docker containers for both frontend and backend:
+
+```dockerfile
+# Example Dockerfile for backend
+FROM node:20-alpine
+WORKDIR /app
+COPY backend/package*.json ./
+RUN npm install
+COPY backend/ ./
+EXPOSE 3001
+CMD ["npm", "start"]
 ```
 
-**Note**: Vercel deployment only supports online mode. Backend files are excluded from deployment.
+## 🔧 API Reference
 
-### Self-Hosted (Full Stack)
+### **Backend Endpoints**
 
-For full offline capability, deploy to your own server:
+**Health Check**
+```bash
+GET /api/health
+```
 
-1. Clone the repository
-2. Run the full setup: `npm run setup-backend && cd backend && npm run setup-models -- --yes`
-3. Start with: `npm run dev:full`
+**Chat Completion**
+```bash
+POST /api/chat
+Content-Type: application/json
 
-## 📋 System Requirements
+{
+  "message": "Hello, how are you?",
+  "conversationHistory": [
+    {"role": "user", "content": "Previous message"},
+    {"role": "assistant", "content": "Previous response"}
+  ],
+  "modelId": "chat"
+}
+```
 
-### Minimum (Gemma 3 1B)
-- Node.js 18.0.0+
-- 4GB RAM
-- 2GB free storage
-- Modern web browser
+**Generate Embeddings**
+```bash
+POST /api/embeddings
+Content-Type: application/json
 
-### Recommended (Qwen3 4B)
-- Node.js 20.0.0+
-- 8GB RAM  
-- 5GB free storage
-- Modern web browser
+{
+  "text": "Text to generate embeddings for"
+}
+```
 
-### High-Performance (Magistral Small)
-- Node.js 20.0.0+
-- 16GB+ RAM
-- CUDA-compatible GPU (for acceleration)
-- 20GB+ free storage
+**Summarize Conversation**
+```bash
+POST /api/summarize
+Content-Type: application/json
 
-## 🔧 Troubleshooting
+{
+  "conversation": [
+    {"role": "user", "content": "Message 1"},
+    {"role": "assistant", "content": "Response 1"}
+  ]
+}
+```
 
-### Backend Issues
-- **Models not loading**: Run `cd backend && npm run setup-models -- --yes`
-- **GPU issues**: Set `ENABLE_GPU=false` in `backend/.env`
-- **Port conflicts**: Change `BACKEND_PORT` in `backend/.env`
+**Generate Title**
+```bash
+POST /api/generate-title
+Content-Type: application/json
 
-### Frontend Issues  
-- **API key errors**: Check your Gemini API key in settings
-- **Mode switching**: Ensure backend is running for offline mode
-- **Build errors**: Run `npm run typecheck` to check TypeScript issues
+{
+  "conversation": [
+    {"role": "user", "content": "First message"}
+  ]
+}
+```
 
-### Common Solutions
-- Clear browser cache and localStorage
-- Restart both frontend and backend servers
-- Check firewall settings for local connections
-- Verify model files exist in `backend/models/`
+### **Model Information**
+```bash
+GET /api/models
+```
 
-## 📄 License
+## 🛠️ Development
 
-This project is licensed under the MIT License.
+### **Frontend Development**
+```bash
+cd frontend
+
+# Development server with hot reload
+npm run dev
+
+# Build for production
+npm run build
+
+# Type checking
+npm run typecheck
+
+# Linting
+npm run lint
+```
+
+### **Backend Development**
+```bash
+cd backend
+
+# Development server with auto-restart
+npm run dev
+
+# Production server
+npm run start
+
+# Download/update models
+npm run setup-models
+```
+
+### **Code Structure**
+
+**Frontend Architecture:**
+- **Next.js 15** with App Router
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **Radix UI** for components
+- **React Hooks** for state management
+
+**Backend Architecture:**
+- **Express.js** for REST API
+- **node-llama-cpp** for LLM inference
+- **CORS** for cross-origin requests
+- **Environment-based** configuration
+
+## 🔍 Troubleshooting
+
+### **Common Issues**
+
+**Backend won't start:**
+- Check Node.js version: `node --version` (need 18+)
+- Verify models downloaded: `ls backend/models/`
+- Check ports: `netstat -an | grep 3001`
+
+**Frontend build errors:**
+- Clear Next.js cache: `rm -rf frontend/.next`
+- Reinstall dependencies: `rm -rf frontend/node_modules && npm install`
+- Check TypeScript: `cd frontend && npm run typecheck`
+
+**Models not loading:**
+- Verify file integrity: Check file sizes match expected
+- Check disk space: Ensure sufficient storage
+- GPU issues: Set `ENABLE_GPU=false` in backend/.env
+
+**API connection errors:**
+- Check firewall settings for localhost connections
+- Verify CORS configuration in backend
+- Check environment variables for API keys
+
+### **Performance Optimization**
+
+**For Limited Resources:**
+1. Use Gemma 3 1B model only
+2. Reduce context size in backend config
+3. Disable GPU acceleration if causing issues
+4. Lower temperature/top_p values for faster responses
+
+**For High Performance:**
+1. Enable GPU acceleration
+2. Use Magistral model for best quality
+3. Increase context size for longer conversations
+4. Use SSD storage for model files
+
+## � System Requirements
+
+### **Minimum (Gemma 3 1B)**
+- **CPU**: 2 cores, 2GHz+
+- **RAM**: 4GB
+- **Storage**: 2GB free
+- **OS**: Windows 10/11, macOS 10.15+, Linux (Ubuntu 18.04+)
+
+### **Recommended (Qwen3 4B)**
+- **CPU**: 4 cores, 3GHz+
+- **RAM**: 8GB
+- **Storage**: 5GB free
+- **OS**: Latest versions
+
+### **High-Performance (Magistral)**
+- **CPU**: 8+ cores, 3.5GHz+
+- **RAM**: 16GB+
+- **GPU**: NVIDIA GPU with 8GB+ VRAM (optional but recommended)
+- **Storage**: 20GB+ free (NVMe SSD recommended)
+- **OS**: Latest versions with CUDA support
+
+## � Security & Privacy
+
+### **Data Handling**
+- **Local Mode**: All data stays on your device
+- **Online Mode**: Data sent to Google Gemini API
+- **Storage**: Conversations stored in browser localStorage
+- **API Keys**: Stored locally or as environment variables
+
+### **Best Practices**
+- Use environment variables for production API keys
+- Regularly update dependencies for security patches
+- Consider using HTTPS in production deployments
+- Implement rate limiting for public deployments
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** changes: `git commit -m 'Add amazing feature'`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
 
-## ❓ Support
+### **Development Guidelines**
+- Follow TypeScript best practices
+- Use Prettier for code formatting
+- Write descriptive commit messages
+- Add tests for new features
+- Update documentation as needed
 
-If you encounter any issues:
-1. Check the troubleshooting section
-2. Look at existing GitHub issues
-3. Create a new issue with detailed information
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- **llama.cpp** community for the excellent C++ implementation
+- **Mistral AI** for the Magistral model
+- **Qwen** team for the embedding model
+- **Google** for Gemma models and Gemini API
+- **Vercel** for hosting and deployment platform
+- **Next.js** team for the React framework
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-repo/discussions)
+- **Documentation**: Check this README and inline code comments
 
 ---
 
-**Enjoy chatting with your local and online LLMs! 🎉**
+**🎉 Ready to chat with your local and online LLMs!**
+
+Start with the Quick Start guide above, choose your deployment method, and enjoy the power of both local privacy and cloud convenience in one application.
    
    Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 

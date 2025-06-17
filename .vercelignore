@@ -1,30 +1,31 @@
-# Backend files and directories (not needed for Vercel deployment)
-backend/
-scripts/
+# Local LLM Project - Vercel Deployment Configuration
+# Only deploy frontend, exclude backend for cloud deployment
 
-# Model files (large binary files)
+# Backend directory (entire backend stays local)
+backend/
+
+# Model files (large binary files - not needed for cloud deployment)
 *.gguf
 *.bin
 *.safetensors
 
-# Dependencies
+# Startup scripts (local development only)
+start-backend.*
+start-frontend.*
+
+# Development dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Environment files (will be set in Vercel dashboard)
+# Environment files (will be configured in Vercel dashboard)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
-# Development files
-.vscode/
-.idea/
-*.swp
-*.swo
 
 # OS generated files
 .DS_Store
@@ -35,17 +36,36 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 
-# Git
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+*.tsbuildinfo
+
+# Runtime files
+*.pid
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Testing
+coverage/
+
+# Firebase (local development only)
+firebase-debug.log
+firestore-debug.log
+
+# Git and deployment
 .git/
 .gitignore
 
-# Build artifacts that should be rebuilt
-dist/
-build/
+# Firebase App Hosting (not needed for Vercel)
+apphosting.yaml
 
-# Test coverage
-coverage/
-
-# Documentation
+# Documentation (not needed for deployment)
 README.md
-docs/

@@ -1,4 +1,9 @@
 {
+	"buildCommand": "cd frontend && npm run build",
+	"outputDirectory": "frontend/.next",
+	"installCommand": "cd frontend && npm install",
+	"devCommand": "cd frontend && npm run dev",
+	"framework": "nextjs",
 	"git": {
 		"deploymentEnabled": {
 			"main": true,
@@ -6,6 +11,14 @@
 			"firebase": false,
 			"vite": false,
 			"backend": false
+		}
+	},
+	"env": {
+		"NEXT_PUBLIC_APP_MODE": "online"
+	},
+	"functions": {
+		"frontend/src/app/api/**": {
+			"runtime": "nodejs18.x"
 		}
 	}
 }
