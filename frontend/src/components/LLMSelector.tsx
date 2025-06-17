@@ -33,15 +33,14 @@ export function LLMSelector({
   return (
     <div className="p-2 space-y-2 border-b border-sidebar-border h-20 min-h-[80px] max-h-[80px]">
       <Label htmlFor="llm-select" className="flex items-center gap-2 text-xs font-medium text-sidebar-foreground/70">
-        <BrainCircuit className="h-4 w-4 text-accent" />
         {isOnline ? (
           <>
-            <Globe className="h-3 w-3 text-green-500" />
+            <Globe className="h-4 w-4 text-accent" />
             Online Model
           </>
         ) : (
           <>
-            <Cpu className="h-3 w-3 text-orange-500" />
+            <Cpu className="h-4 w-4 text-accent" />
             Local Model
           </>
         )}

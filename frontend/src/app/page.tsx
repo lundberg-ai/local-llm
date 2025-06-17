@@ -608,7 +608,7 @@ export default function AipifyLocalPage() {
         <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
           {mode === 'online' ? (
             <>
-              <Globe className="h-4 w-4 text-green-500" />
+              <Globe className="h-4 w-4 text-primary" />
               <span>Online mode
                 {!hasApiKey() && (
                   " - API key recommended"
@@ -617,7 +617,7 @@ export default function AipifyLocalPage() {
             </>
           ) : (
             <>
-              <WifiOff className="h-4 w-4 text-orange-500" />
+              <WifiOff className="h-4 w-4 text-accent-foreground" />
               <span>Offline mode - Requires local backend server</span>
             </>
           )}
