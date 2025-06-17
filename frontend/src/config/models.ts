@@ -14,7 +14,7 @@ export const LOCAL_MODELS: LLMModel[] = [
   },
   {
     id: 'gemma-3-1b-it',
-    name: 'Gemma 3 1B IT (Ultralight, english only)',
+    name: 'Gemma 3 1B IT (Ultralight - English)',
     description: 'Ultra-light model for mobile devices, English only (~700MB).',
   },
 ];
@@ -23,7 +23,7 @@ export const LOCAL_MODELS: LLMModel[] = [
 export const GEMINI_MODELS: LLMModel[] = [
   {
     id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
+    name: 'Gemini 1.5 Flash (Default)',
     description: 'Google\'s fast and efficient model with multimodal capabilities.',
   },
   {

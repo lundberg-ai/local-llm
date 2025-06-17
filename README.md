@@ -43,7 +43,6 @@ local-llm/
 │   │   │   ├── layout.tsx
 │   │   │   └── page.tsx
 │   │   ├── components/
-│   │   │   ├── ModeSelector.tsx    # Online/offline toggle
 │   │   │   ├── LLMSelector.tsx     # Model selection
 │   │   │   ├── ChatWindow.tsx      # Main chat interface
 │   │   │   ├── ChatList.tsx        # Session management

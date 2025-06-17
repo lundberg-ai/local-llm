@@ -49,9 +49,8 @@ export function LLMSelector({
         value={selectedModelId}
         onValueChange={onSelectModel}
         disabled={disabled}
-      >
-        <SelectTrigger id="llm-select" className="w-full h-9 bg-sidebar-background hover:bg-sidebar-accent/10 focus:ring-sidebar-ring">
-          <SelectValue placeholder={`Select ${isOnline ? 'online' : 'local'} model`} />
+      >        <SelectTrigger id="llm-select" className="w-full h-9 bg-sidebar-background hover:bg-sidebar-accent/10 focus:ring-sidebar-ring text-left">
+          <SelectValue placeholder={`Select ${isOnline ? 'online' : 'local'} model`} className="truncate" />
         </SelectTrigger>
         <SelectContent>
           {models.map((model) => (
