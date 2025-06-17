@@ -4,10 +4,11 @@
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import type { ChatSession, Message, LLMModel } from "@/types";
-import { LOCAL_MODELS, GEMINI_MODELS } from "@/config/models";
+import { LOCAL_MODELS, GEMINI_MODELS, MODES, getModelsForMode, type Mode } from "@/config/models";
 import { ChatList } from "@/components/ChatList";
 import { ChatWindow } from "@/components/ChatWindow";
 import { LLMSelector } from "@/components/LLMSelector";
+import { ModeSelector } from "@/components/ModeSelector";
 import AipifyLogo from "@/components/icons/AipifyLogo";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -22,8 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// Switch component is no longer needed for mode toggle
-// import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +37,7 @@ import { getApiKey, hasApiKey, getApiKeySource } from '@/lib/api-key';
 export default function AipifyLocalPage() {
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>(MODES.OFFLINE);
   const [models, setModels] = useState<LLMModel[]>(LOCAL_MODELS);
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
     LOCAL_MODELS[0]?.id // Default to first local model
@@ -45,7 +45,6 @@ export default function AipifyLocalPage() {
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [mode, setMode] = useState<'offline' | 'online'>('offline');
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
@@ -95,35 +94,43 @@ export default function AipifyLocalPage() {
       }
     }
   }, [theme]);
-
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
+
+  // Update models when mode changes
   useEffect(() => {
+    const newModels = getModelsForMode(mode);
+    setModels(newModels);
+
+    // Update selected model if current one is not available in new mode
+    if (selectedModelId && !newModels.find(m => m.id === selectedModelId)) {
+      setSelectedModelId(newModels[0]?.id);
+    }
+  }, [mode, selectedModelId]); useEffect(() => {
     try {
-      const storedMode = localStorage.getItem('aipify-local-mode') as 'offline' | 'online' | null;
+      const storedMode = localStorage.getItem('aipify-local-mode') as Mode | null;
       const availableApiKey = getApiKey();
 
-      if (storedMode === 'online' && availableApiKey) {
+      if (storedMode === MODES.ONLINE && availableApiKey) {
         setApiKey(availableApiKey);
-        setMode('online');
+        setMode(MODES.ONLINE);
       } else {
-        setMode('offline');
+        setMode(MODES.OFFLINE);
         if (availableApiKey) {
           setApiKey(availableApiKey); // Keep available API key even if starting offline
         }
       }
     } catch {
       console.warn("Could not access localStorage for mode/API key.");
-      setMode('offline');
+      setMode(MODES.OFFLINE);
       // Still try to get API key from environment
       const envApiKey = getApiKey();
       if (envApiKey) {
         setApiKey(envApiKey);
       }
     }
-  }, []);
-  useEffect(() => {
+  }, []); useEffect(() => {
     try {
       localStorage.setItem('aipify-local-mode', mode);
 
@@ -133,8 +140,8 @@ export default function AipifyLocalPage() {
         localStorage.setItem('aipify-local-api-key', apiKey);
       } else if (apiKeySource === 'none') {
         localStorage.removeItem('aipify-local-api-key');
-        if (mode === 'online') {
-          setMode('offline'); // Revert to offline if API key is removed while online
+        if (mode === MODES.ONLINE) {
+          setMode(MODES.OFFLINE); // Revert to offline if API key is removed while online
           toast({
             title: "Switched to Offline Mode",
             description: "API key was removed. Online mode requires an API key.",
@@ -246,8 +253,7 @@ export default function AipifyLocalPage() {
         )
       );
     }
-  };
-  const generateTitle = async (chatId: string, conversationHistory: string) => {
+  }; const generateTitle = async (chatId: string, conversation: Message[]) => {
     if (isGeneratingTitle) return;
     setIsGeneratingTitle(true);
     const currentApiKey = getApiKey();
@@ -259,9 +265,10 @@ export default function AipifyLocalPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          conversationHistory,
-          apiKey: mode === 'online' ? currentApiKey : undefined,
-          modelId: mode === 'online' ? selectedModelId : undefined,
+          conversation: conversation,
+          apiKey: mode === MODES.ONLINE ? currentApiKey : undefined,
+          modelId: mode === MODES.ONLINE ? selectedModelId : undefined,
+          mode: mode,
         }),
       });
 
@@ -309,10 +316,8 @@ export default function AipifyLocalPage() {
     }); setIsLoadingResponse(true);
     let assistantContent: string;
     const llmName = models.find(m => m.id === selectedModelId)?.name || (mode === 'online' ? 'Gemini' : 'Local LLM');
-    const currentApiKey = getApiKey();
-
-    try {
-      if (mode === 'online' && currentApiKey) {
+    const currentApiKey = getApiKey(); try {
+      if (mode === MODES.ONLINE && currentApiKey) {
         // Get conversation history for context
         const currentChat = chats.find(chat => chat.id === chatId);
         const conversationHistory = currentChat?.messages || [];
@@ -328,6 +333,7 @@ export default function AipifyLocalPage() {
             apiKey: currentApiKey,
             modelId: selectedModelId,
             modelName: llmName,
+            mode: 'online',
           }),
         });
 
@@ -338,7 +344,7 @@ export default function AipifyLocalPage() {
 
         const data = await response.json();
         assistantContent = data.response;
-      } else if (mode === 'online' && !currentApiKey) {
+      } else if (mode === MODES.ONLINE && !currentApiKey) {
         // Online mode selected but no API key available
         assistantContent = `Online mode is enabled but no API key is available. Please set your Gemini API key in the settings to use online features.`;
         toast({
@@ -347,8 +353,31 @@ export default function AipifyLocalPage() {
           variant: "destructive",
         });
       } else {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        assistantContent = `As ${llmName}, I received: "${content}". This is a mock response for offline mode.`;
+        // Offline mode - call local backend
+        const currentChat = chats.find(chat => chat.id === chatId);
+        const conversationHistory = currentChat?.messages || [];
+
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: content,
+            conversationHistory: conversationHistory,
+            modelId: selectedModelId,
+            modelName: llmName,
+            mode: 'offline',
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to get response from local backend');
+        }
+
+        const data = await response.json();
+        assistantContent = data.response;
       }
     } catch (error) {
       console.error('Error generating response:', error);
@@ -366,10 +395,8 @@ export default function AipifyLocalPage() {
       role: "assistant",
       content: assistantContent,
       timestamp: new Date(),
-    };
-
-    let needsTitleGeneration = false;
-    let conversationHistoryForTitle = "";
+    }; let needsTitleGeneration = false;
+    let conversationForTitle: Message[] = [];
 
     setChats((prevChats) =>
       prevChats.map((chat) => {
@@ -377,9 +404,7 @@ export default function AipifyLocalPage() {
           const finalMessages = [...chat.messages, assistantMessage];
           if (finalMessages.length === 2 && chat.title === "New Chat") {
             needsTitleGeneration = true;
-            conversationHistoryForTitle = finalMessages
-              .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`)
-              .join("\n");
+            conversationForTitle = finalMessages;
           }
           return { ...chat, messages: finalMessages };
         }
@@ -390,38 +415,51 @@ export default function AipifyLocalPage() {
     setIsLoadingResponse(false);
 
     if (needsTitleGeneration && chatId) {
-      await generateTitle(chatId, conversationHistoryForTitle);
+      await generateTitle(chatId, conversationForTitle);
     }
-  };
-  const handleModeSwitchChange = (isAttemptingOnline: boolean) => {
-    if (isAttemptingOnline) {
+  }; const handleModeChange = (newMode: Mode) => {
+    if (newMode === MODES.ONLINE) {
       if (hasApiKey()) {
-        setMode('online');
+        setMode(MODES.ONLINE);
         // Update the local apiKey state with the current available key
         const currentApiKey = getApiKey();
         if (currentApiKey) {
           setApiKey(currentApiKey);
         }
-      } else {
-        // No API key available, switch to online anyway but user can manually set key later
-        setMode('online');
         toast({
-          title: "No API Key Found",
-          description: "Online mode is enabled, but no API key is available. Set one in settings to use online features.",
+          title: "Switched to Online Mode",
+          description: "Now using Gemini API for chat responses.",
+          variant: "default",
+        });
+      } else {
+        // No API key available, show dialog
+        setShowApiKeyDialog(true);
+        toast({
+          title: "API Key Required",
+          description: "Please set your Gemini API key to use online mode.",
           variant: "default",
         });
       }
     } else {
-      setMode('offline');
+      setMode(MODES.OFFLINE);
+      toast({
+        title: "Switched to Offline Mode",
+        description: "Now using local LLM for chat responses.",
+        variant: "default",
+      });
     }
   };
-
   const handleApiKeyDialogSubmit = () => {
     if (tempApiKeyInput.trim()) {
       setApiKey(tempApiKeyInput.trim());
-      setMode('online');
+      setMode(MODES.ONLINE);
       setShowApiKeyDialog(false);
       setTempApiKeyInput('');
+      toast({
+        title: "API Key Set",
+        description: "Switched to online mode with Gemini API.",
+        variant: "default",
+      });
     } else {
       toast({
         title: "API Key Required",
@@ -518,19 +556,24 @@ export default function AipifyLocalPage() {
 
   return (
     <SidebarProvider defaultOpen>
-      <Sidebar collapsible="icon" side="left" className="border-r-sidebar-border">
-        <SidebarHeader className="h-16 flex items-center p-4 border-b border-sidebar-border min-h-[64px] max-h-[64px]">
-          <div className="flex items-center gap-2">
-            <AipifyLogo className="text-accent h-8 w-8" />
-            <h1 className="font-headline text-2xl font-semibold text-sidebar-foreground">
-              Aipify Local
-            </h1>
-          </div>
-        </SidebarHeader>
+      <Sidebar collapsible="icon" side="left" className="border-r-sidebar-border">        <SidebarHeader className="h-16 flex items-center p-4 border-b border-sidebar-border min-h-[64px] max-h-[64px]">
+        <div className="flex items-center gap-2">
+          <AipifyLogo className="text-accent h-8 w-8" />
+          <h1 className="font-headline text-2xl font-semibold text-sidebar-foreground">
+            Aipify Local
+          </h1>
+        </div>
+      </SidebarHeader>
+        <ModeSelector
+          mode={mode}
+          onModeChange={handleModeChange}
+          disabled={isLoadingResponse || isGeneratingTitle}
+        />
         <LLMSelector
           models={models}
           selectedModelId={selectedModelId}
           onSelectModel={handleSelectModel}
+          mode={mode}
           disabled={isLoadingResponse || isGeneratingTitle}
         />
         <SidebarContent>
@@ -563,17 +606,7 @@ export default function AipifyLocalPage() {
               {activeChat?.title || "Chat"}
             </h2>
           </div>
-          <div className="flex-grow"></div>
-          <div className="flex items-center space-x-2"> {/* Reduced space-x-4 to space-x-2 */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleModeSwitchChange(mode === 'offline')}
-              disabled={isLoadingResponse || isGeneratingTitle}
-              aria-label={`Switch to ${mode === 'offline' ? 'Online' : 'Offline'} mode`}
-            >
-              {mode === 'online' ? <Wifi className="h-5 w-5 text-primary" /> : <WifiOff className="h-5 w-5" />}
-            </Button>
+          <div className="flex-grow"></div>          <div className="flex items-center space-x-2">
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>

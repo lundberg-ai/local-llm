@@ -3,6 +3,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { ChatSession } from "@/types";
+import type { Mode } from "@/config/models";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,12 +11,13 @@ import { ChatMessageDisplay } from "./ChatMessageDisplay";
 import { Loader2, Send, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getApiKey } from "@/lib/api-key";
+import { MODES } from "@/config/models";
 
 interface ChatWindowProps {
   chatSession: ChatSession | null;
   onSendMessage: (chatId: string, content: string) => Promise<void>;
   isLoadingResponse: boolean;
-  mode: 'offline' | 'online';
+  mode: Mode;
   selectedModelId: string | undefined;
 }
 
@@ -60,14 +62,13 @@ export function ChatWindow({
       const conversationText = chatSession.messages
         .map((msg) => `${msg.role === "user" ? "User" : "AI"}: ${msg.content}`).join("\n");
 
-      const currentApiKey = getApiKey();
-      const response = await fetch('/api/summarize', {
+      const currentApiKey = getApiKey(); const response = await fetch('/api/summarize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          conversationText,
+          conversation: chatSession.messages,
           mode,
           apiKey: currentApiKey || undefined,
           modelId: selectedModelId,

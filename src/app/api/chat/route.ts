@@ -8,12 +8,54 @@ interface ChatMessage {
 
 export async function POST(request: NextRequest) {
 	try {
-		const { message, conversationHistory, apiKey, modelId } = await request.json();
+		const { message, conversationHistory, apiKey, modelId, mode = 'online' } = await request.json();
 
 		if (!message) {
 			return NextResponse.json({ error: 'Message is required' }, { status: 400 });
 		}
 
+		// Handle local mode
+		if (mode === 'offline') {
+			try {
+				// Call local backend
+				const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+				const response = await fetch(`${backendUrl}/api/chat`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						message,
+						conversationHistory,
+						modelId: 'chat' // Map to backend's model ID
+					}),
+				});
+
+				if (!response.ok) {
+					const errorData = await response.json().catch(() => ({ error: 'Backend connection failed' }));
+					throw new Error(errorData.error || 'Local backend error');
+				}
+
+				const data = await response.json();
+				return NextResponse.json({ response: data.response });
+			} catch (error) {
+				console.error('Local backend error:', error);
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+				// Fallback error message for local mode
+				if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('fetch failed')) {
+					return NextResponse.json({
+						error: 'Local backend server is not running. Please start the backend server first.'
+					}, { status: 503 });
+				}
+
+				return NextResponse.json({
+					error: `Local backend error: ${errorMessage}`
+				}, { status: 500 });
+			}
+		}
+
+		// Handle online mode (existing Gemini logic)
 		if (!apiKey) {
 			return NextResponse.json({ error: 'API key is required for online mode' }, { status: 400 });
 		}

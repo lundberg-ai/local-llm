@@ -1,21 +1,21 @@
 import type { LLMModel } from '@/types';
 
-// Local LLM models
+// Local LLM models (using our backend)
 export const LOCAL_MODELS: LLMModel[] = [
   {
-    id: 'llama3-8b-instruct',
-    name: 'Llama 3 8B Instruct',
-    description: 'A capable and efficient instruction-tuned model from Meta.',
+    id: 'magistral-small-2506',
+    name: 'Magistral Small 2506',
+    description: 'A capable instruction-tuned model by Mistral AI (local).',
   },
   {
-    id: 'mistral-7b-instruct',
-    name: 'Mistral 7B Instruct',
-    description: 'A powerful 7B parameter model by Mistral AI, instruction-tuned.',
+    id: 'qwen3-embedding-4b',
+    name: 'Qwen3 Embedding 4B',
+    description: 'High-quality embedding model by Qwen (local).',
   },
   {
-    id: 'phi3-mini-instruct',
-    name: 'Phi-3 Mini Instruct',
-    description: 'A lightweight, high-performance model by Microsoft, instruction-tuned.',
+    id: 'gemma-3-1b-it',
+    name: 'Gemma 3 1B IT',
+    description: 'Lightweight instruction-tuned model by Google (local).',
   },
 ];
 
@@ -32,6 +32,26 @@ export const GEMINI_MODELS: LLMModel[] = [
     description: 'Google\'s latest experimental model with enhanced performance and capabilities.',
   },
 ];
+
+// Mode configuration
+export const MODES = {
+  OFFLINE: 'offline',
+  ONLINE: 'online',
+} as const;
+
+export type Mode = typeof MODES[keyof typeof MODES];
+
+// Get models based on mode
+export function getModelsForMode(mode: Mode): LLMModel[] {
+  switch (mode) {
+    case MODES.OFFLINE:
+      return LOCAL_MODELS;
+    case MODES.ONLINE:
+      return GEMINI_MODELS;
+    default:
+      return LOCAL_MODELS;
+  }
+}
 
 // For backward compatibility
 export const AVAILABLE_MODELS = LOCAL_MODELS;

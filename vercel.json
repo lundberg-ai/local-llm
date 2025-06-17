@@ -2,7 +2,10 @@
 	"git": {
 		"deploymentEnabled": {
 			"main": true,
-			"dev": false
+			"dev": false,
+			"firebase": false,
+			"vite": false,
+			"backend": false
 		}
 	}
 }

@@ -1,3 +1,12 @@
+# Backend files and directories (not needed for Vercel deployment)
+backend/
+scripts/
+
+# Model files (large binary files)
+*.gguf
+*.bin
+*.safetensors
+
 # Dependencies
 node_modules/
 npm-debug.log*
