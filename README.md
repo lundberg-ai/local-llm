@@ -6,9 +6,9 @@ A Next.js application for chatting with both local and online LLMs, featuring a 
 
 - **🔄 Dual Mode Operation**: Switch seamlessly between local and online modes
 - **🏠 Local LLM Support**: Run local models using llama.cpp with JavaScript bindings
-  - Mistral Magistral Small 2506
-  - Qwen3 Embedding 4B
-  - Gemma 3 1B IT
+  - Mistral Magistral Small 2506 (mid-tier, ~14GB)
+  - Qwen3 Embedding 4B (lightweight for laptops, ~2.3GB)
+  - Gemma 3 1B IT (ultra-light for mobile, English only, ~700MB)
 - **☁️ Online Mode**: Integrate with Google's Gemini models
 - **💬 Multiple Chats**: Manage multiple concurrent chat sessions
 - **🤖 AI Summarization**: Summarize conversations using local or online AI
@@ -119,9 +119,9 @@ Use the mode selector in the sidebar to switch between modes.
 ### Local Models
 
 The backend supports these models:
-- **Magistral Small 2506**: Main chat model (~2.4GB)
-- **Qwen3 Embedding 4B**: Embedding model (~2.3GB)  
-- **Gemma 3 1B IT**: Alternative lightweight model (~700MB)
+- **Magistral Small 2506**: Mid-tier chat model (~14GB) - Best balance of quality and performance
+- **Qwen3 Embedding 4B**: Lightweight model (~2.3GB) - Optimized for laptops with limited resources
+- **Gemma 3 1B IT**: Ultra-light model (~700MB) - Designed for mobile devices, English only
 
 Models are automatically downloaded when you run the setup script.
 
@@ -180,17 +180,23 @@ For full offline capability, deploy to your own server:
 
 ## 📋 System Requirements
 
-### Minimum
+### Minimum (Gemma 3 1B)
 - Node.js 18.0.0+
-- 8GB RAM
-- 10GB free storage (for models)
+- 4GB RAM
+- 2GB free storage
 - Modern web browser
 
-### Recommended
+### Recommended (Qwen3 4B)
 - Node.js 20.0.0+
-- 16GB RAM
+- 8GB RAM  
+- 5GB free storage
+- Modern web browser
+
+### High-Performance (Magistral Small)
+- Node.js 20.0.0+
+- 16GB+ RAM
 - CUDA-compatible GPU (for acceleration)
-- 20GB free storage
+- 20GB+ free storage
 
 ## 🔧 Troubleshooting
 

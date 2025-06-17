@@ -1,6 +1,7 @@
 #!/usr/bin/env pwsh
 
-# Local LLM Full Stack Startup Script
+# Local LLM Full Stack Startup Script (Windows PowerShell)
+# Compatible with: Windows 10/11, Windows Server
 # This script starts both the frontend and backend servers
 
 Write-Host "🚀 Starting Local LLM Full Stack Application" -ForegroundColor Green

@@ -10,17 +10,17 @@ const access = promisify(fs.access);
 const MODELS = {
 	'magistral-small-2506.gguf': {
 		url: 'https://huggingface.co/mistralai/Magistral-Small-2506_gguf/resolve/main/magistral-small-2506.Q4_K_M.gguf',
-		description: 'Magistral Small 2506 - Main chat model',
-		size: '~2.4GB'
+		description: 'Magistral Small 2506 - Mid-tier chat model (Mistral AI)',
+		size: '~14GB'
 	},
 	'qwen3-embedding-4b.gguf': {
 		url: 'https://huggingface.co/Qwen/Qwen3-Embedding-4B-GGUF/resolve/main/qwen3-embedding-4b.Q4_K_M.gguf',
-		description: 'Qwen3 Embedding 4B - Embedding model',
+		description: 'Qwen3 Embedding 4B - Lightweight model for laptops',
 		size: '~2.3GB'
 	},
 	'gemma-3-1b-it-qat-q4_0.gguf': {
 		url: 'https://huggingface.co/google/gemma-3-1b-it-qat-q4_0-gguf/resolve/main/gemma-3-1b-it-qat-q4_0.gguf',
-		description: 'Gemma 3 1B IT - Alternative lightweight model',
+		description: 'Gemma 3 1B IT - Ultra-light model for mobile devices (English only)',
 		size: '~700MB'
 	}
 };
@@ -134,7 +134,8 @@ async function main() {
 		console.log(`📦 ${config.description} (${config.size})`);
 	});
 
-	console.log('\n⚠️  Warning: This will download several GB of data. Make sure you have sufficient disk space and internet bandwidth.\n');
+	console.log('\n⚠️  Warning: This will download up to ~17GB of data total. Make sure you have sufficient disk space and internet bandwidth.');
+	console.log('💡 Tip: You can download individual models by choosing specific ones during setup.\n');
 
 	// Check if user wants to proceed
 	const args = process.argv.slice(2);

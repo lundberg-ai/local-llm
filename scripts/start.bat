@@ -1,7 +1,8 @@
 @echo off
 setlocal
 
-REM Local LLM Full Stack Startup Script
+REM Local LLM Full Stack Startup Script (Windows Batch)
+REM Compatible with: Windows 7/8/10/11, Windows Server
 REM This script starts both the frontend and backend servers
 
 echo 🚀 Starting Local LLM Full Stack Application

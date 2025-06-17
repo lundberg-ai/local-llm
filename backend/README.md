@@ -12,9 +12,9 @@ A Node.js backend server for running local LLM models using llama.cpp bindings.
 
 ## Supported Models
 
-- **mistralai/Magistral-Small-2506_gguf**: Main chat model (~2.4GB)
-- **Qwen/Qwen3-Embedding-4B-GGUF**: Embedding model (~2.3GB)
-- **google/gemma-3-1b-it-qat-q4_0-gguf**: Alternative lightweight model (~700MB)
+- **mistralai/Magistral-Small-2506_gguf**: Mid-tier chat model (~14GB) - Best balance of quality and performance
+- **Qwen/Qwen3-Embedding-4B-GGUF**: Lightweight model (~2.3GB) - Optimized for laptops with limited resources  
+- **google/gemma-3-1b-it-qat-q4_0-gguf**: Ultra-light model (~700MB) - Designed for mobile devices, English only
 
 ## Quick Start
 

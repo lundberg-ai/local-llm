@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Local LLM Full Stack Startup Script
+# Local LLM Full Stack Startup Script (Bash)
+# Compatible with: Linux (Ubuntu, CentOS, etc.), macOS, Windows (WSL/Git Bash)
 # This script starts both the frontend and backend servers
 
 echo "🚀 Starting Local LLM Full Stack Application"
